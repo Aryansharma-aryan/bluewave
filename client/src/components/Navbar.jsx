@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import Logo from "../assets/logo.jpeg";
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -496,6 +497,7 @@ export default function Navbar() {
   const [scrolled,   setScrolled]   = useState(false);
   const [activeLink, setActiveLink] = useState("#home");
   const cssInjected = useRef(false);
+  const location = useLocation();
 
   /* Inject styles once */
   useEffect(() => {
@@ -659,8 +661,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Push page content below fixed nav */}
-      <div style={{ height: "78px" }} />
     </>
   );
 }

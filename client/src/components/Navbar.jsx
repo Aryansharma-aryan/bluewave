@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import Logo from "../assets/logo.jpeg";
 
 /* ══════════════════════════════════════════════════
@@ -15,7 +14,7 @@ const NAV_LINKS = [
   { label: "Services",  href: "#services",  icon: "◈"  },
   { label: "Countries", href: "#countries", icon: "🌍" },
   { label: "Contact",   href: "#contact",   icon: "✉"  },
-  {label:"Consultation Form", href: "#consultation", icon: "📝"}
+  {label:"Consultation Form", href: "#consult", icon: "📝"}
 ];
 
 let cssInjected = false;
@@ -32,9 +31,9 @@ export default function Navbar() {
   const [mounted,  setMounted]  = useState(false);
   const ref = useRef(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (ref.current) return; ref.current = true; injectCSS(CSS);
-    setTimeout(() => setMounted(true), 60);
+    setMounted(true);
   }, []);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 const BG = "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=90&auto=format&fit=crop";
-const WORDS = ["Dubai", "UAE", "Your Future"];
+const WORDS = ["Abroad", "Canada", "Australia", "United Kingdom", "Your Future"];
 const TRUST = [
   { value: "15+",     label: "Years of Excellence" },
   { value: "98%",     label: "Visa Approval Rate"  },

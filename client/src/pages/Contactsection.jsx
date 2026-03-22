@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 const PHONE      = "+971 50 658 0557";
 const PHONE_LINK = "tel:+971506580557";
 const WA_LINK    = "https://wa.me/971506580557";
-const EMAIL      = "info@bluewaveconsultation.ae";
+const EMAIL      = "info@bluewaveconsultation.com";
 
 // AJMAN
 const MAPS_LINK_AJMAN = "https://maps.google.com/?q=Amber+Gem+Tower+Ajman+UAE";

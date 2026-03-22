@@ -1,20 +1,20 @@
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import Logo from "../assets/logo.jpeg";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 /* ══════════════════════════════════════════════════
    BlueWave — Premium Navbar
+   Uses React Router for ALL navigation (no scroll hacks)
    Desktop: horizontal nav
    Mobile: full-height slide-in SIDEBAR (right)
-   Smooth · Premium · Animated
 ══════════════════════════════════════════════════ */
 
 const NAV_LINKS = [
-  { label: "Home",      href: "#home",      icon: "🏠" },
-  { label: "About",     href: "#about",     icon: "✦"  },
-  { label: "Services",  href: "#services",  icon: "◈"  },
-  { label: "Countries", href: "#countries", icon: "🌍" },
-  { label: "Contact",   href: "#contact",   icon: "✉"  },
-  {label:"Consultation Form", href: "#consult", icon: "📝"}
+  { label: "Home",              path: "/",           icon: "🏠" },
+  { label: "About",             path: "/about",      icon: "✦"  },
+  { label: "Services",          path: "/services",   icon: "◈"  },
+  { label: "Contact",           path: "/contact",    icon: "✉"  },
+  { label: "Consultation Form", path: "/consult",    icon: "📝" },
 ];
 
 let cssInjected = false;
@@ -25,11 +25,16 @@ function injectCSS(css) {
 }
 
 export default function Navbar() {
+  const navigate  = useNavigate();
+  const location  = useLocation();
+
   const [open,     setOpen]     = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [active,   setActive]   = useState("#home");
   const [mounted,  setMounted]  = useState(false);
   const ref = useRef(false);
+
+  // Active based on current route
+  const active = location.pathname;
 
   useLayoutEffect(() => {
     if (ref.current) return; ref.current = true; injectCSS(CSS);
@@ -42,32 +47,38 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  /* Lock body scroll when sidebar open */
+  // Lock body scroll when sidebar open
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  /* Close on desktop resize */
+  // Close sidebar on desktop resize
   useEffect(() => {
     const fn = () => { if (window.innerWidth >= 900) setOpen(false); };
     window.addEventListener("resize", fn);
     return () => window.removeEventListener("resize", fn);
   }, []);
 
-  const nav = (e, href) => {
-    e.preventDefault();
-    setActive(href); setOpen(false);
-    setTimeout(() => {
-      document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, open ? 320 : 0);
+  // Close sidebar on route change
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
+
+  const goTo = (path) => {
+    setOpen(false);
+    navigate(path);
   };
 
   const goCTA = () => {
-    setActive("#contact"); setOpen(false);
-    setTimeout(() => {
-      document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
-    }, open ? 320 : 0);
+    setOpen(false);
+    navigate("/contact");
+  };
+
+  // Check if a link is active (exact for home, startsWith for others)
+  const isActive = (path) => {
+    if (path === "/") return active === "/";
+    return active.startsWith(path);
   };
 
   return (
@@ -81,7 +92,7 @@ export default function Navbar() {
         <div className="nb-bar">
 
           {/* BRAND */}
-          <a href="#home" className="nb-brand" onClick={e => nav(e, "#home")}>
+          <button className="nb-brand" onClick={() => goTo("/")}>
             <div className="nb-logo-shell">
               <div className="nb-logo-glow" />
               <div className="nb-logo-box">
@@ -95,17 +106,19 @@ export default function Navbar() {
               </div>
               <div className="nb-brand-sub">Management Consultancy</div>
             </div>
-          </a>
+          </button>
 
           {/* DESKTOP LINKS */}
           <nav className="nb-links">
             {NAV_LINKS.map(l => (
-              <a key={l.href} href={l.href}
-                className={`nb-link${active === l.href ? " nb-active" : ""}`}
-                onClick={e => nav(e, l.href)}>
+              <button
+                key={l.path}
+                className={`nb-link${isActive(l.path) ? " nb-active" : ""}`}
+                onClick={() => goTo(l.path)}
+              >
                 {l.label}
                 <span className="nb-link-ul" />
-              </a>
+              </button>
             ))}
           </nav>
 
@@ -127,8 +140,11 @@ export default function Navbar() {
             </button>
 
             {/* Hamburger */}
-            <button className={`nb-ham${open ? " nb-ham-open" : ""}`}
-              onClick={() => setOpen(o => !o)} aria-label="Menu">
+            <button
+              className={`nb-ham${open ? " nb-ham-open" : ""}`}
+              onClick={() => setOpen(o => !o)}
+              aria-label="Menu"
+            >
               <span className="nb-hline" />
               <span className="nb-hline" />
               <span className="nb-hline" />
@@ -142,8 +158,10 @@ export default function Navbar() {
       ══════════════════════════════════════ */}
 
       {/* Backdrop overlay */}
-      <div className={`nb-overlay${open ? " nb-overlay-in" : ""}`}
-        onClick={() => setOpen(false)} />
+      <div
+        className={`nb-overlay${open ? " nb-overlay-in" : ""}`}
+        onClick={() => setOpen(false)}
+      />
 
       {/* Sidebar panel */}
       <aside className={`nb-sidebar${open ? " nb-sidebar-in" : ""}`}>
@@ -158,7 +176,9 @@ export default function Navbar() {
               <div className="nb-brand-name nb-sb-name">
                 <span className="nb-blue">Blue</span><span className="nb-gold-txt">Wave</span>
               </div>
-              <div className="nb-brand-sub" style={{ color:"rgba(212,175,55,.55)" }}>Management Consultancy</div>
+              <div className="nb-brand-sub" style={{ color:"rgba(212,175,55,.55)" }}>
+                Management Consultancy
+              </div>
             </div>
           </div>
           <button className="nb-sb-close" onClick={() => setOpen(false)} aria-label="Close">
@@ -175,24 +195,28 @@ export default function Navbar() {
         {/* Nav links — staggered entrance */}
         <nav className="nb-sb-links">
           {NAV_LINKS.map((l, i) => (
-            <a key={l.href} href={l.href}
-              className={`nb-sb-link${active === l.href ? " nb-sb-active" : ""}${open ? " nb-sb-link-in" : ""}`}
+            <button
+              key={l.path}
+              className={`nb-sb-link${isActive(l.path) ? " nb-sb-active" : ""}${open ? " nb-sb-link-in" : ""}`}
               style={{ transitionDelay: open ? `${120 + i * 60}ms` : "0ms" }}
-              onClick={e => nav(e, l.href)}>
+              onClick={() => goTo(l.path)}
+            >
               <span className="nb-sb-icon">{l.icon}</span>
               <span className="nb-sb-label">{l.label}</span>
               <svg className="nb-sb-arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M13 6l6 6-6 6"/>
               </svg>
-            </a>
+            </button>
           ))}
         </nav>
 
         {/* Sidebar footer */}
         <div className="nb-sb-footer">
-          <button className={`nb-sb-cta${open ? " nb-sb-link-in" : ""}`}
+          <button
+            className={`nb-sb-cta${open ? " nb-sb-link-in" : ""}`}
             style={{ transitionDelay: open ? `${120 + NAV_LINKS.length * 60 + 40}ms` : "0ms" }}
-            onClick={goCTA}>
+            onClick={goCTA}
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/>
             </svg>
@@ -200,8 +224,10 @@ export default function Navbar() {
             <span className="nb-shine" />
           </button>
 
-          <div className={`nb-sb-contacts${open ? " nb-sb-link-in" : ""}`}
-            style={{ transitionDelay: open ? `${120 + NAV_LINKS.length * 60 + 100}ms` : "0ms" }}>
+          <div
+            className={`nb-sb-contacts${open ? " nb-sb-link-in" : ""}`}
+            style={{ transitionDelay: open ? `${120 + NAV_LINKS.length * 60 + 100}ms` : "0ms" }}
+          >
             <a href="tel:+971506580557" className="nb-sb-contact-link">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.86 9.5 19.79 19.79 0 01.77 1a2 2 0 012-2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.34 1.85.574 2.81.7A2 2 0 0122 16.92z"/>
@@ -217,8 +243,10 @@ export default function Navbar() {
             </a>
           </div>
 
-          <div className={`nb-sb-trust${open ? " nb-sb-link-in" : ""}`}
-            style={{ transitionDelay: open ? `${120 + NAV_LINKS.length * 60 + 160}ms` : "0ms" }}>
+          <div
+            className={`nb-sb-trust${open ? " nb-sb-link-in" : ""}`}
+            style={{ transitionDelay: open ? `${120 + NAV_LINKS.length * 60 + 160}ms` : "0ms" }}
+          >
             <span>✦ 98% Approval</span>
             <span>✦ 12,000+ Visas</span>
             <span>✦ Since 2018</span>
@@ -251,7 +279,6 @@ html { scroll-behavior: smooth; }
   opacity: 0; transform: translateY(-14px);
 }
 .nb-in { opacity: 1 !important; transform: translateY(0) !important; }
-
 .nb-scrolled {
   background: rgba(8, 12, 22, 0.97) !important;
   backdrop-filter: blur(22px) saturate(180%) !important;
@@ -284,19 +311,16 @@ html { scroll-behavior: smooth; }
 .nb-brand {
   display: flex; align-items: center; gap: 13px;
   text-decoration: none; flex-shrink: 0;
+  background: none; border: none; cursor: pointer;
   transition: opacity .2s;
 }
 .nb-brand:hover { opacity: .9; }
 
-.nb-logo-shell {
-  position: relative; width: 50px; height: 50px; flex-shrink: 0;
-}
+.nb-logo-shell { position: relative; width: 50px; height: 50px; flex-shrink: 0; }
 .nb-logo-glow {
   position: absolute; inset: -2px; border-radius: 13px;
   background: linear-gradient(135deg, #DC2626, #D4AF37, #DC2626);
-  background-size: 300%;
-  animation: nbGlow 4s linear infinite;
-  opacity: .75;
+  background-size: 300%; animation: nbGlow 4s linear infinite; opacity: .75;
 }
 @keyframes nbGlow { 0%{background-position:0% 50%} 100%{background-position:300% 50%} }
 .nb-logo-box {
@@ -327,9 +351,7 @@ html { scroll-behavior: smooth; }
   font-size: 1.22rem; font-weight: 900;
   line-height: 1.1; letter-spacing: 0.01em;
 }
-/* "Blue" — deep navy matching logo exactly */
 .nb-blue { color: #1B3A8A; }
-/* "Waves" — teal cyan matching the logo swoosh */
 .nb-gold-txt {
   background: linear-gradient(135deg, #1DA1C8 0%, #38BDF8 55%, #0EA5E9 100%);
   background-size: 200%;
@@ -338,7 +360,6 @@ html { scroll-behavior: smooth; }
   animation: nbShimmer 4s ease-in-out infinite alternate;
 }
 @keyframes nbShimmer { from{background-position:0% 50%} to{background-position:200% 50%} }
-/* Subtitle — thin tracked caps like "MANAGEMENT CONSULTANCY" in logo */
 .nb-brand-sub {
   font-family: 'Montserrat', sans-serif;
   font-size: .46rem; font-weight: 500;
@@ -347,9 +368,7 @@ html { scroll-behavior: smooth; }
 }
 
 /* ══ DESKTOP LINKS ══ */
-.nb-links {
-  display: flex; align-items: center; gap: 4px;
-}
+.nb-links { display: flex; align-items: center; gap: 4px; }
 @media(max-width:900px){ .nb-links { display: none !important; } }
 
 .nb-link {
@@ -358,6 +377,7 @@ html { scroll-behavior: smooth; }
   letter-spacing: .1em; text-transform: uppercase;
   color: rgba(255,255,255,.6); text-decoration: none;
   padding: 8px 14px; border-radius: 7px;
+  background: none; border: none; cursor: pointer;
   transition: color .25s, background .25s;
 }
 .nb-link:hover { color: #fff; background: rgba(255,255,255,.06); }
@@ -373,7 +393,7 @@ html { scroll-behavior: smooth; }
 .nb-link:hover .nb-link-ul,
 .nb-link.nb-active .nb-link-ul { transform: scaleX(1); }
 
-/* ══ RIGHT ══ */
+/* ══ RIGHT ACTIONS ══ */
 .nb-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 
 .nb-tel {
@@ -423,14 +443,11 @@ html { scroll-behavior: smooth; }
 .nb-ham-open .nb-hline:nth-child(2) { opacity: 0; width: 0; }
 .nb-ham-open .nb-hline:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-/* ══════════════════════════════════════════════
-   OVERLAY
-══════════════════════════════════════════════ */
+/* ══ OVERLAY ══ */
 .nb-overlay {
   position: fixed; inset: 0; z-index: 950;
   background: rgba(4, 6, 14, 0);
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
+  backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
   pointer-events: none;
   transition: background .4s ease, backdrop-filter .4s ease;
 }
@@ -441,72 +458,51 @@ html { scroll-behavior: smooth; }
   pointer-events: all !important;
 }
 
-/* ══════════════════════════════════════════════
-   SIDEBAR PANEL
-══════════════════════════════════════════════ */
+/* ══ SIDEBAR ══ */
 .nb-sidebar {
-  position: fixed; top: 0; right: 0; bottom: 0;
-  z-index: 999;
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 999;
   width: 320px; max-width: 88vw;
-
-  /* Deep gradient background */
   background: linear-gradient(160deg, #0D1220 0%, #111827 40%, #0D1525 100%);
   border-left: 1px solid rgba(212,175,55,.15);
-
-  display: flex; flex-direction: column;
-  overflow: hidden;
-
-  /* === SLIDE ANIMATION === */
-  transform: translateX(100%);
-  opacity: 0;
-  visibility: hidden;
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: translateX(100%); opacity: 0; visibility: hidden;
   transition:
     transform .42s cubic-bezier(.16,1,.3,1),
     opacity .38s ease,
     visibility 0s linear .42s;
-
-  /* Subtle inner shadow on left */
   box-shadow: -8px 0 60px rgba(0,0,0,.55), -1px 0 0 rgba(212,175,55,.08);
 }
 .nb-sidebar-in {
-  transform: translateX(0) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
+  transform: translateX(0) !important; opacity: 1 !important; visibility: visible !important;
   transition:
     transform .42s cubic-bezier(.16,1,.3,1),
     opacity .38s ease,
     visibility 0s linear 0s !important;
 }
-
-/* Background decoration */
 .nb-sidebar::before {
-  content: '';
-  position: absolute; top: -60px; right: -60px;
+  content: ''; position: absolute; top: -60px; right: -60px;
   width: 220px; height: 220px; border-radius: 50%;
   background: radial-gradient(circle, rgba(220,38,38,.12) 0%, transparent 65%);
   pointer-events: none;
 }
 .nb-sidebar::after {
-  content: '';
-  position: absolute; bottom: 40px; left: -40px;
+  content: ''; position: absolute; bottom: 40px; left: -40px;
   width: 180px; height: 180px; border-radius: 50%;
   background: radial-gradient(circle, rgba(212,175,55,.08) 0%, transparent 65%);
   pointer-events: none;
 }
 
-/* ── Sidebar header ── */
+/* Sidebar header */
 .nb-sb-head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 22px 24px 18px;
-  flex-shrink: 0;
+  padding: 22px 24px 18px; flex-shrink: 0;
 }
 .nb-sb-brand { display: flex; align-items: center; gap: 12px; }
 .nb-sb-logo {
   width: 46px; height: 46px; border-radius: 11px;
   background: #fff; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 16px rgba(0,0,0,.35);
-  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,.35); flex-shrink: 0;
 }
 .nb-sb-name { font-size: 1.05rem !important; }
 
@@ -522,14 +518,13 @@ html { scroll-behavior: smooth; }
   color: #fff; transform: rotate(90deg);
 }
 
-/* ── Gold divider rule ── */
 .nb-sb-rule {
   height: 1.5px; margin: 0 24px;
   background: linear-gradient(90deg, rgba(220,38,38,.5), rgba(212,175,55,.6), transparent);
   flex-shrink: 0;
 }
 
-/* ── Nav links ── */
+/* Sidebar nav links */
 .nb-sb-links {
   flex: 1; padding: 18px 16px; display: flex; flex-direction: column; gap: 4px;
   overflow-y: auto;
@@ -539,29 +534,19 @@ html { scroll-behavior: smooth; }
   display: flex; align-items: center; gap: 14px;
   padding: 14px 16px; border-radius: 12px;
   text-decoration: none; color: rgba(255,255,255,.62);
-  border: 1px solid transparent;
-  /* Staggered entrance */
+  background: none; border: 1px solid transparent; cursor: pointer; width: 100%;
+  text-align: left;
   opacity: 0; transform: translateX(28px);
   transition:
-    opacity .4s ease,
-    transform .4s cubic-bezier(.16,1,.3,1),
-    background .25s,
-    border-color .25s,
-    color .25s;
+    opacity .4s ease, transform .4s cubic-bezier(.16,1,.3,1),
+    background .25s, border-color .25s, color .25s;
 }
-.nb-sb-link-in {
-  opacity: 1 !important;
-  transform: translateX(0) !important;
-}
+.nb-sb-link-in { opacity: 1 !important; transform: translateX(0) !important; }
 .nb-sb-link:hover {
-  background: rgba(255,255,255,.05);
-  border-color: rgba(212,175,55,.18);
-  color: #fff;
+  background: rgba(255,255,255,.05); border-color: rgba(212,175,55,.18); color: #fff;
 }
 .nb-sb-link.nb-sb-active {
-  background: rgba(212,175,55,.08);
-  border-color: rgba(212,175,55,.28);
-  color: #fff;
+  background: rgba(212,175,55,.08); border-color: rgba(212,175,55,.28); color: #fff;
 }
 .nb-sb-icon {
   width: 36px; height: 36px; border-radius: 9px;
@@ -572,8 +557,7 @@ html { scroll-behavior: smooth; }
 }
 .nb-sb-link:hover .nb-sb-icon,
 .nb-sb-link.nb-sb-active .nb-sb-icon {
-  background: rgba(212,175,55,.12);
-  border-color: rgba(212,175,55,.28);
+  background: rgba(212,175,55,.12); border-color: rgba(212,175,55,.28);
 }
 .nb-sb-label {
   flex: 1; font-family: 'Montserrat', sans-serif;
@@ -586,7 +570,7 @@ html { scroll-behavior: smooth; }
 .nb-sb-link:hover .nb-sb-arr { opacity: 1; transform: translateX(0); }
 .nb-sb-link.nb-sb-active .nb-sb-arr { opacity: .6; transform: translateX(0); }
 
-/* ── Footer ── */
+/* Sidebar footer */
 .nb-sb-footer {
   padding: 16px 20px 28px;
   border-top: 1px solid rgba(255,255,255,.06);
@@ -600,7 +584,6 @@ html { scroll-behavior: smooth; }
   letter-spacing: .1em; text-transform: uppercase; color: #0A0F1A;
   background: linear-gradient(135deg, #F5D76E 0%, #D4AF37 55%, #B8921E 100%);
   border: none; border-radius: 10px; padding: 15px 24px; cursor: pointer; width: 100%;
-  /* Staggered entrance */
   opacity: 0; transform: translateX(28px);
   transition: opacity .4s ease, transform .4s cubic-bezier(.16,1,.3,1), box-shadow .3s, filter .2s;
 }
@@ -609,7 +592,6 @@ html { scroll-behavior: smooth; }
 
 .nb-sb-contacts {
   display: flex; flex-direction: column; gap: 8px;
-  /* Staggered entrance */
   opacity: 0; transform: translateX(28px);
   transition: opacity .4s ease, transform .4s cubic-bezier(.16,1,.3,1);
 }
@@ -622,13 +604,10 @@ html { scroll-behavior: smooth; }
   padding: 8px 12px; border-radius: 8px;
   transition: color .2s, background .2s;
 }
-.nb-sb-contact-link:hover {
-  color: #D4AF37; background: rgba(212,175,55,.07);
-}
+.nb-sb-contact-link:hover { color: #D4AF37; background: rgba(212,175,55,.07); }
 
 .nb-sb-trust {
   display: flex; flex-wrap: wrap; gap: 8px;
-  /* Staggered entrance */
   opacity: 0; transform: translateX(28px);
   transition: opacity .4s ease, transform .4s cubic-bezier(.16,1,.3,1);
 }
@@ -638,6 +617,5 @@ html { scroll-behavior: smooth; }
   color: rgba(212,175,55,.55); letter-spacing: .08em;
 }
 
-/* ── No horizontal scrollbar from sidebar ── */
 body { overflow-x: hidden; }
 `;

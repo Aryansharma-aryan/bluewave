@@ -8,7 +8,6 @@ import Contactsection from './pages/Contactsection';
 import Loader from './pages/Loader';
 import ConsultancyForm from './components/Forms/ConsultancyForm';
 
-
 function App() {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -22,6 +21,7 @@ function App() {
     }
   }, []);
 
+  // ✅ Let Loader decide when to finish
   if (isLoading) {
     return <Loader onDone={() => setIsLoading(false)} />;
   }
@@ -35,7 +35,6 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contactsection />} />
         <Route path="/consult" element={<ConsultancyForm />} />
-
       </Routes>
     </Router>
   );

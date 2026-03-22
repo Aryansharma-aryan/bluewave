@@ -2,665 +2,643 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import Logo from "../assets/logo.jpeg";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   BlueWave Consultation — Premium Navbar
-   Perfectly matched to HeroSection design DNA:
-   • Cinzel × Outfit typography (same as Hero)
-   • Gold (#D4AF37) + Navy (#06101E) + Teal (#00AEEF) palette
-   • Animated gold shimmer top bar
-   • Glass-blur on scroll with gold shadow
-   • Floating logo with glowing ring
-   • Gold underline nav links
-   • Pulsing gold CTA button with shine sweep
-   • Animated hamburger → X
-   • Smooth mobile drawer
-   • Floating particles (matching Hero)
-   • Fully responsive
-══════════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   BlueWave — Premium Navbar
+   Desktop: horizontal nav
+   Mobile: full-height slide-in SIDEBAR (right)
+   Smooth · Premium · Animated
+══════════════════════════════════════════════════ */
 
 const NAV_LINKS = [
-  { label: "Home",     href: "#home"     },
-  { label: "Services", href: "#services" },
-  { label: "About",    href: "#about"    },
-  { label: "Contact",  href: "#contact"  },
+  { label: "Home",      href: "#home",      icon: "🏠" },
+  { label: "About",     href: "#about",     icon: "✦"  },
+  { label: "Services",  href: "#services",  icon: "◈"  },
+  { label: "Countries", href: "#countries", icon: "🌍" },
+  { label: "Contact",   href: "#contact",   icon: "✉"  },
+  {label:"Consultation Form", href: "#consultation", icon: "📝"}
 ];
 
-/* ── 6 mini particles that float in the navbar background ─────────────────── */
-const NAV_PARTICLES = [
-  { x: 12,  y: 30, s: 2.2, dur: 5,   del: 0    },
-  { x: 28,  y: 65, s: 1.5, dur: 7,   del: 1.2  },
-  { x: 55,  y: 25, s: 1.8, dur: 6,   del: 0.5  },
-  { x: 72,  y: 70, s: 2.5, dur: 4.5, del: 2    },
-  { x: 85,  y: 40, s: 1.6, dur: 8,   del: 0.8  },
-  { x: 95,  y: 55, s: 2,   dur: 5.5, del: 1.5  },
-];
-
-/* ── All CSS injected once into <head> ────────────────────────────────────── */
-const STYLES = `
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Amiri:wght@400;700&family=Outfit:wght@300;400;500;600&display=swap');
-
-/* ─── CSS Variables (same tokens as HeroSection) ─────────────────────────── */
-:root {
-  --bw-g1:         #B8941F;
-  --bw-g2:         #D4AF37;
-  --bw-g3:         #F5D76E;
-  --bw-navy:       #06101E;
-  --bw-navy2:      #0A1F44;
-  --bw-navy-glass: rgba(5, 9, 20, 0.97);
-  --bw-teal:       #00AEEF;
-  --bw-teal2:      #38C8FF;
-  --bw-white:      #FFFFFF;
-  --bw-white85:    rgba(255,255,255,0.85);
-  --bw-white08:    rgba(255,255,255,0.08);
+let cssInjected = false;
+function injectCSS(css) {
+  if (cssInjected) return; cssInjected = true;
+  const el = document.createElement("style");
+  el.textContent = css; document.head.appendChild(el);
 }
 
-html { scroll-behavior: smooth; }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-/* ─── Keyframes ───────────────────────────────────────────────────────────── */
-@keyframes bw-navReveal {
-  from { opacity: 0; transform: translateY(-14px); }
-  to   { opacity: 1; transform: translateY(0);     }
-}
-@keyframes bw-shimmerSlide {
-  0%   { background-position: -700px 0; }
-  100% { background-position:  700px 0; }
-}
-@keyframes bw-goldPulse {
-  0%   { box-shadow: 0 0 0 0   rgba(212,175,55,0.65); }
-  70%  { box-shadow: 0 0 0 14px rgba(212,175,55,0);   }
-  100% { box-shadow: 0 0 0 0   rgba(212,175,55,0);    }
-}
-@keyframes bw-logoFloat {
-  0%,100% { transform: translateY(0px);   }
-  50%      { transform: translateY(-3px); }
-}
-@keyframes bw-ringPulse {
-  0%,100% { box-shadow: 0 0 0 0   rgba(212,175,55,0.5); }
-  50%      { box-shadow: 0 0 0 5px rgba(212,175,55,0);   }
-}
-@keyframes bw-ptFloat {
-  0%,100% { transform: translateY(0px)   scale(1);    opacity: var(--op); }
-  50%      { transform: translateY(-10px) scale(1.3); opacity: calc(var(--op)*1.8); }
-}
-@keyframes bw-scanLine {
-  0%   { left: -30%; }
-  100% { left: 120%; }
-}
-@keyframes bw-logoGlow {
-  0%,100% { box-shadow: 0 0 0 2px rgba(212,175,55,0.35), 0 6px 22px rgba(0,0,0,0.45); }
-  50%      { box-shadow: 0 0 0 3px rgba(212,175,55,0.70), 0 8px 28px rgba(212,175,55,0.2); }
-}
-@keyframes bw-dotPulse {
-  0%,100% { opacity: 1;   transform: scale(1);   }
-  50%      { opacity: 0.5; transform: scale(0.7); }
-}
-
-/* ─── NAVBAR SHELL ────────────────────────────────────────────────────────── */
-.bwn-nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 1000;
-  animation: bw-navReveal 0.7s cubic-bezier(0.22,1,0.36,1) both;
-  transition: background 0.45s ease, box-shadow 0.45s ease;
-  overflow: hidden;
-}
-
-/* Scrolled state — glass + gold glow */
-.bwn-nav.scrolled {
-  background: var(--bw-navy-glass) !important;
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  box-shadow:
-    0 10px 50px rgba(0,0,0,0.55),
-    0 1px 0 rgba(212,175,55,0.25),
-    inset 0 1px 0 rgba(255,255,255,0.04) !important;
-}
-
-/* ─── GOLD TOP SHIMMER BAR (matches Hero scan) ───────────────────────────── */
-.bwn-shimmer-bar {
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--bw-g1) 20%,
-    var(--bw-g2) 40%,
-    var(--bw-g3) 50%,
-    var(--bw-g2) 60%,
-    var(--bw-g1) 80%,
-    transparent 100%
-  );
-  background-size: 700px 100%;
-  animation: bw-shimmerSlide 3s linear infinite;
-}
-
-/* ─── HORIZONTAL SCAN LIGHT (mini version of Hero scan) ─────────────────── */
-.bwn-scan {
-  position: absolute;
-  top: 0; height: 100%; width: 35%;
-  background: linear-gradient(90deg, transparent, rgba(212,175,55,0.04), transparent);
-  pointer-events: none;
-  animation: bw-scanLine 7s linear infinite;
-  z-index: 0;
-}
-
-/* ─── GRID TEXTURE (subtle, matches Hero) ────────────────────────────────── */
-.bwn-grid {
-  position: absolute;
-  inset: 0; pointer-events: none; z-index: 0;
-  background-image:
-    linear-gradient(rgba(212,175,55,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212,175,55,0.025) 1px, transparent 1px);
-  background-size: 50px 50px;
-}
-
-/* ─── INNER ROW ──────────────────────────────────────────────────────────── */
-.bwn-inner {
-  position: relative;
-  z-index: 5;
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 0 32px;
-  height: 76px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* ─── BRAND ──────────────────────────────────────────────────────────────── */
-.bwn-brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-
-/* Logo container — white bg so logo is always crystal clear */
-.bwn-logo-wrap {
-  position: relative;
-  width: 54px;
-  height: 54px;
-  border-radius: 12px;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  animation: bw-logoFloat 4.5s ease-in-out infinite, bw-logoGlow 3.5s ease-in-out infinite;
-  transition: transform 0.3s ease;
-  overflow: hidden;
-}
-.bwn-logo-wrap:hover {
-  transform: translateY(-2px) scale(1.06) !important;
-}
-
-/* Gold corner triangle pip */
-.bwn-logo-wrap::after {
-  content: '';
-  position: absolute;
-  bottom: 0; right: 0;
-  width: 12px; height: 12px;
-  background: var(--bw-g2);
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
-}
-
-/* Logo image — full visibility, no clipping */
-.bwn-logo-wrap img {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  display: block;
-}
-
-/* Brand text */
-.bwn-brand-text { line-height: 1; }
-
-.bwn-brand-name {
-  font-family: 'Cinzel', serif;
-  font-weight: 700;
-  font-size: 1.18rem;
-  color: var(--bw-white);
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  line-height: 1.15;
-}
-
-/* "Waves" word in gold gradient */
-.bwn-brand-name .gold {
-  background: linear-gradient(135deg, var(--bw-g1), var(--bw-g2), var(--bw-g3));
-  background-size: 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: bw-shimmerSlide 4s linear infinite;
-}
-
-.bwn-brand-sub {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.46rem;
-  font-weight: 400;
-  letter-spacing: 0.36em;
-  text-transform: uppercase;
-  color: rgba(212,175,55,0.65);
-  margin-top: 3px;
-  white-space: nowrap;
-}
-
-/* Status dot */
-.bwn-brand-dot {
-  display: inline-block;
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--bw-teal);
-  margin-right: 6px;
-  vertical-align: middle;
-  animation: bw-dotPulse 2s ease-in-out infinite;
-}
-
-/* ─── DESKTOP LINKS CONTAINER ────────────────────────────────────────────── */
-.bwn-links {
-  display: flex;
-  align-items: center;
-  gap: 0;
-}
-
-/* Vertical separator between links */
-.bwn-sep {
-  width: 1px;
-  height: 14px;
-  background: rgba(212,175,55,0.2);
-  margin: 0 24px;
-  flex-shrink: 0;
-}
-
-/* ─── NAV LINK ────────────────────────────────────────────────────────────── */
-.bwn-link {
-  position: relative;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 400;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.78);
-  text-decoration: none;
-  padding: 5px 0;
-  transition: color 0.28s ease;
-  white-space: nowrap;
-}
-
-/* Gold underline expands from center — matches Hero card hover */
-.bwn-link::after {
-  content: '';
-  position: absolute;
-  bottom: -1px; left: 50%; right: 50%;
-  height: 1.5px;
-  background: linear-gradient(90deg, var(--bw-g1), var(--bw-g2), var(--bw-g3));
-  border-radius: 2px;
-  transition: left 0.32s ease, right 0.32s ease;
-}
-.bwn-link:hover,
-.bwn-link.active {
-  color: var(--bw-g3);
-}
-.bwn-link:hover::after,
-.bwn-link.active::after {
-  left: 0; right: 0;
-}
-
-/* ─── DIVIDER BEFORE CTA ─────────────────────────────────────────────────── */
-.bwn-divider {
-  width: 1px;
-  height: 22px;
-  background: rgba(212,175,55,0.2);
-  margin: 0 28px;
-  flex-shrink: 0;
-}
-
-/* ─── CTA BUTTON (gold — matches Hero primary button) ───────────────────── */
-.bwn-cta {
-  position: relative;
-  overflow: hidden;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 600;
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--bw-navy);
-  background: linear-gradient(135deg, var(--bw-g1), var(--bw-g2), var(--bw-g3), var(--bw-g2));
-  background-size: 300%;
-  border: none;
-  border-radius: 3px;
-  padding: 12px 28px;
-  cursor: pointer;
-  white-space: nowrap;
-  animation: bw-goldPulse 3s ease-out infinite, bw-shimmerSlide 5s linear infinite;
-  transition: transform 0.25s ease, box-shadow 0.3s ease;
-}
-
-/* Shine sweep on hover */
-.bwn-cta::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -80%;
-  width: 55%; height: 100%;
-  background: linear-gradient(110deg, transparent, rgba(255,255,255,0.42), transparent);
-  transition: left 0.55s ease;
-  pointer-events: none;
-}
-.bwn-cta:hover::before { left: 160%; }
-.bwn-cta:hover {
-  transform: translateY(-3px) scale(1.03);
-  animation: none;
-  background-position: right;
-  box-shadow: 0 12px 38px rgba(212,175,55,0.55), 0 4px 12px rgba(0,0,0,0.4);
-}
-.bwn-cta:active { transform: translateY(0) scale(1); }
-
-/* ─── HAMBURGER BUTTON ───────────────────────────────────────────────────── */
-.bwn-burger {
-  display: none;
-  flex-direction: column;
-  gap: 5.5px;
-  background: rgba(212,175,55,0.07);
-  border: 1px solid rgba(212,175,55,0.2);
-  border-radius: 8px;
-  cursor: pointer;
-  padding: 10px;
-  transition: background 0.25s, border-color 0.25s;
-  flex-shrink: 0;
-}
-.bwn-burger:hover {
-  background: rgba(212,175,55,0.14);
-  border-color: rgba(212,175,55,0.45);
-}
-
-.bwn-bar {
-  display: block;
-  width: 22px;
-  height: 2px;
-  background: var(--bw-g2);
-  border-radius: 2px;
-  transform-origin: center;
-  transition:
-    transform 0.38s cubic-bezier(0.4,0,0.2,1),
-    opacity   0.3s ease,
-    width     0.32s ease;
-}
-.bwn-burger.open .bwn-bar:nth-child(1) { transform: translateY(7.5px) rotate(45deg);  }
-.bwn-burger.open .bwn-bar:nth-child(2) { opacity: 0; width: 0;                         }
-.bwn-burger.open .bwn-bar:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
-
-/* ─── MOBILE DRAWER ──────────────────────────────────────────────────────── */
-.bwn-drawer {
-  position: relative;
-  z-index: 4;
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
-  transition:
-    max-height 0.48s cubic-bezier(0.4,0,0.2,1),
-    opacity    0.32s ease;
-  border-top: 1px solid rgba(212,175,55,0.1);
-  background: linear-gradient(180deg, rgba(4,8,18,0.99) 0%, rgba(6,12,28,0.99) 100%);
-}
-.bwn-drawer.open {
-  max-height: 480px;
-  opacity: 1;
-}
-
-.bwn-mob-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.68);
-  text-decoration: none;
-  padding: 16px 28px;
-  border-left: 2px solid transparent;
-  transition:
-    color        0.25s ease,
-    border-color 0.25s ease,
-    background   0.25s ease,
-    padding-left 0.28s ease;
-}
-
-/* Dot indicator */
-.bwn-mob-link::before {
-  content: '';
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--bw-g2);
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.25s;
-}
-
-.bwn-mob-link:hover,
-.bwn-mob-link.active {
-  color: var(--bw-g3);
-  border-left-color: var(--bw-g2);
-  background: rgba(212,175,55,0.06);
-  padding-left: 36px;
-}
-.bwn-mob-link:hover::before,
-.bwn-mob-link.active::before { opacity: 1; }
-
-/* Mobile CTA footer */
-.bwn-mob-footer {
-  padding: 16px 28px 28px;
-  border-top: 1px solid rgba(212,175,55,0.08);
-  margin-top: 4px;
-}
-.bwn-mob-footer .bwn-cta {
-  width: 100%;
-  border-radius: 4px;
-  text-align: center;
-  display: block;
-}
-
-/* Drawer grid texture */
-.bwn-drawer-grid {
-  position: absolute;
-  inset: 0; pointer-events: none;
-  background-image:
-    linear-gradient(rgba(212,175,55,0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212,175,55,0.022) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
-@media (max-width: 900px) {
-  .bwn-sep { margin: 0 16px; }
-  .bwn-divider { margin: 0 18px; }
-  .bwn-cta { padding: 11px 20px; font-size: 0.68rem; }
-}
-@media (max-width: 767px) {
-  .bwn-links  { display: none !important; }
-  .bwn-burger { display: flex !important; }
-  .bwn-inner  { padding: 0 18px; height: 70px; }
-}
-@media (max-width: 400px) {
-  .bwn-brand-name { font-size: 1rem; }
-  .bwn-brand-sub  { display: none; }
-  .bwn-logo-wrap  { width: 46px; height: 46px; }
-  .bwn-logo-wrap img { width: 42px; height: 42px; }
-}
-`;
-
-/* ── Component ────────────────────────────────────────────────────────────── */
 export default function Navbar() {
-  const [menuOpen,   setMenuOpen]   = useState(false);
-  const [scrolled,   setScrolled]   = useState(false);
-  const [activeLink, setActiveLink] = useState("#home");
-  const cssInjected = useRef(false);
-  const location = useLocation();
+  const [open,     setOpen]     = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [active,   setActive]   = useState("#home");
+  const [mounted,  setMounted]  = useState(false);
+  const ref = useRef(false);
 
-  /* Inject styles once */
   useEffect(() => {
-    if (cssInjected.current) return;
-    const tag = document.createElement("style");
-    tag.textContent = STYLES;
-    document.head.appendChild(tag);
-    cssInjected.current = true;
+    if (ref.current) return; ref.current = true; injectCSS(CSS);
+    setTimeout(() => setMounted(true), 60);
   }, []);
 
-  /* Scroll shadow */
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
+    const fn = () => setScrolled(window.scrollY > 24);
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  /* Close drawer on desktop resize */
+  /* Lock body scroll when sidebar open */
   useEffect(() => {
-    const fn = () => { if (window.innerWidth >= 768) setMenuOpen(false); };
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  /* Close on desktop resize */
+  useEffect(() => {
+    const fn = () => { if (window.innerWidth >= 900) setOpen(false); };
     window.addEventListener("resize", fn);
     return () => window.removeEventListener("resize", fn);
   }, []);
 
-  const handleNav = (e, href) => {
+  const nav = (e, href) => {
     e.preventDefault();
-    setActiveLink(href);
-    setMenuOpen(false);
-    document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActive(href); setOpen(false);
+    setTimeout(() => {
+      document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, open ? 320 : 0);
   };
 
-  const goConsult = () => {
-    setActiveLink("#contact");
-    setMenuOpen(false);
-    document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
+  const goCTA = () => {
+    setActive("#contact"); setOpen(false);
+    setTimeout(() => {
+      document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
+    }, open ? 320 : 0);
   };
 
   return (
     <>
-      <nav
-        className={`bwn-nav${scrolled ? " scrolled" : ""}`}
-        style={{
-          background: scrolled
-            ? undefined
-            : "linear-gradient(180deg, rgba(4,8,20,0.96) 0%, rgba(6,12,30,0.85) 100%)",
-        }}
-      >
-        {/* ── Gold shimmer top bar ── */}
-        <div className="bwn-shimmer-bar" />
+      <header className={`nb-root${scrolled ? " nb-scrolled" : ""}${mounted ? " nb-in" : ""}`}>
 
-        {/* ── Scan light ── */}
-        <div className="bwn-scan" />
+        {/* ── Red-to-Gold animated top rule ── */}
+        <div className="nb-rule" />
 
-        {/* ── Grid texture ── */}
-        <div className="bwn-grid" />
+        {/* ── Main bar ── */}
+        <div className="nb-bar">
 
-        {/* ── Floating particles (matching Hero aesthetic) ── */}
-        {NAV_PARTICLES.map((p, i) => (
-          <div
-            key={i}
-            style={{
-              "--op": p.s > 2 ? 0.35 : 0.22,
-              position: "absolute",
-              left: `${p.x}%`,
-              top: "50%",
-              marginTop: -(p.s / 2),
-              width: p.s,
-              height: p.s,
-              borderRadius: "50%",
-              background: i % 2 === 0 ? "#D4AF37" : "#38C8FF",
-              opacity: p.s > 2 ? 0.35 : 0.22,
-              pointerEvents: "none",
-              zIndex: 1,
-              animation: `bw-ptFloat ${p.dur}s ${p.del}s ease-in-out infinite`,
-            }}
-          />
-        ))}
-
-        {/* ════ MAIN ROW ════ */}
-        <div className="bwn-inner">
-
-          {/* ── Brand / Logo ── */}
-          <a
-            href="#home"
-            className="bwn-brand"
-            onClick={(e) => handleNav(e, "#home")}
-          >
-            {/* Logo — white background guarantees full clarity */}
-            <div className="bwn-logo-wrap">
-              <img src={Logo} alt="BlueWave Consultation Logo" />
+          {/* BRAND */}
+          <a href="#home" className="nb-brand" onClick={e => nav(e, "#home")}>
+            <div className="nb-logo-shell">
+              <div className="nb-logo-glow" />
+              <div className="nb-logo-box">
+                <img src={Logo} alt="BlueWave" className="nb-logo-img" />
+              </div>
+              <span className="nb-live-dot" />
             </div>
-
-            {/* Text */}
-            <div className="bwn-brand-text">
-              <div className="bwn-brand-name">
-                Blue<span className="gold">Wave</span>
+            <div className="nb-brand-words">
+              <div className="nb-brand-name">
+                <span className="nb-blue">Blue</span><span className="nb-gold-txt">Wave</span>
               </div>
-              <div className="bwn-brand-sub">
-                <span className="bwn-brand-dot" />
-                Consultation
-              </div>
+              <div className="nb-brand-sub">Management Consultancy</div>
             </div>
           </a>
 
-          {/* ── Desktop nav links + CTA ── */}
-          <div className="bwn-links">
-            {NAV_LINKS.map((link, i) => (
-              <span key={link.href} style={{ display: "flex", alignItems: "center" }}>
-                {i > 0 && <span className="bwn-sep" />}
-                <a
-                  href={link.href}
-                  className={`bwn-link${activeLink === link.href ? " active" : ""}`}
-                  onClick={(e) => handleNav(e, link.href)}
-                >
-                  {link.label}
-                </a>
-              </span>
+          {/* DESKTOP LINKS */}
+          <nav className="nb-links">
+            {NAV_LINKS.map(l => (
+              <a key={l.href} href={l.href}
+                className={`nb-link${active === l.href ? " nb-active" : ""}`}
+                onClick={e => nav(e, l.href)}>
+                {l.label}
+                <span className="nb-link-ul" />
+              </a>
             ))}
+          </nav>
 
-            <span className="bwn-divider" />
+          {/* RIGHT ACTIONS */}
+          <div className="nb-actions">
+            <a href="tel:+971506580557" className="nb-tel">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.86 9.5 19.79 19.79 0 01.77 1a2 2 0 012-2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.34 1.85.574 2.81.7A2 2 0 0122 16.92z"/>
+              </svg>
+              +971 50 658 0557
+            </a>
 
-            <button className="bwn-cta" onClick={goConsult}>
-              Get Consultation
+            <button className="nb-cta" onClick={goCTA}>
+              Free Consultation
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M13 6l6 6-6 6"/>
+              </svg>
+              <span className="nb-shine" />
+            </button>
+
+            {/* Hamburger */}
+            <button className={`nb-ham${open ? " nb-ham-open" : ""}`}
+              onClick={() => setOpen(o => !o)} aria-label="Menu">
+              <span className="nb-hline" />
+              <span className="nb-hline" />
+              <span className="nb-hline" />
             </button>
           </div>
+        </div>
+      </header>
 
-          {/* ── Hamburger ── */}
-          <button
-            className={`bwn-burger${menuOpen ? " open" : ""}`}
-            onClick={() => setMenuOpen((o) => !o)}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-          >
-            <span className="bwn-bar" />
-            <span className="bwn-bar" />
-            <span className="bwn-bar" />
+      {/* ══════════════════════════════════════
+          MOBILE SIDEBAR + OVERLAY
+      ══════════════════════════════════════ */}
+
+      {/* Backdrop overlay */}
+      <div className={`nb-overlay${open ? " nb-overlay-in" : ""}`}
+        onClick={() => setOpen(false)} />
+
+      {/* Sidebar panel */}
+      <aside className={`nb-sidebar${open ? " nb-sidebar-in" : ""}`}>
+
+        {/* Sidebar header */}
+        <div className="nb-sb-head">
+          <div className="nb-sb-brand">
+            <div className="nb-sb-logo">
+              <img src={Logo} alt="BlueWave" className="nb-logo-img" />
+            </div>
+            <div>
+              <div className="nb-brand-name nb-sb-name">
+                <span className="nb-blue">Blue</span><span className="nb-gold-txt">Wave</span>
+              </div>
+              <div className="nb-brand-sub" style={{ color:"rgba(212,175,55,.55)" }}>Management Consultancy</div>
+            </div>
+          </div>
+          <button className="nb-sb-close" onClick={() => setOpen(false)} aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
           </button>
         </div>
 
-        {/* ════ MOBILE DRAWER ════ */}
-        <div className={`bwn-drawer${menuOpen ? " open" : ""}`}>
-          {/* Drawer grid texture */}
-          <div className="bwn-drawer-grid" />
+        {/* Gold divider */}
+        <div className="nb-sb-rule" />
 
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className={`bwn-mob-link${activeLink === link.href ? " active" : ""}`}
-              onClick={(e) => handleNav(e, link.href)}
-            >
-              {link.label}
+        {/* Nav links — staggered entrance */}
+        <nav className="nb-sb-links">
+          {NAV_LINKS.map((l, i) => (
+            <a key={l.href} href={l.href}
+              className={`nb-sb-link${active === l.href ? " nb-sb-active" : ""}${open ? " nb-sb-link-in" : ""}`}
+              style={{ transitionDelay: open ? `${120 + i * 60}ms` : "0ms" }}
+              onClick={e => nav(e, l.href)}>
+              <span className="nb-sb-icon">{l.icon}</span>
+              <span className="nb-sb-label">{l.label}</span>
+              <svg className="nb-sb-arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M13 6l6 6-6 6"/>
+              </svg>
             </a>
           ))}
+        </nav>
 
-          {/* Mobile CTA */}
-          <div className="bwn-mob-footer">
-            <button className="bwn-cta" onClick={goConsult}>
-              Get Free Consultation
-            </button>
+        {/* Sidebar footer */}
+        <div className="nb-sb-footer">
+          <button className={`nb-sb-cta${open ? " nb-sb-link-in" : ""}`}
+            style={{ transitionDelay: open ? `${120 + NAV_LINKS.length * 60 + 40}ms` : "0ms" }}
+            onClick={goCTA}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+            </svg>
+            Book Free Consultation
+            <span className="nb-shine" />
+          </button>
+
+          <div className={`nb-sb-contacts${open ? " nb-sb-link-in" : ""}`}
+            style={{ transitionDelay: open ? `${120 + NAV_LINKS.length * 60 + 100}ms` : "0ms" }}>
+            <a href="tel:+971506580557" className="nb-sb-contact-link">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.86 9.5 19.79 19.79 0 01.77 1a2 2 0 012-2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.34 1.85.574 2.81.7A2 2 0 0122 16.92z"/>
+              </svg>
+              +971 50 658 0557
+            </a>
+            <a href="mailto:info@bluewaveconsultation.ae" className="nb-sb-contact-link">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              info@bluewaveconsultation.ae
+            </a>
+          </div>
+
+          <div className={`nb-sb-trust${open ? " nb-sb-link-in" : ""}`}
+            style={{ transitionDelay: open ? `${120 + NAV_LINKS.length * 60 + 160}ms` : "0ms" }}>
+            <span>✦ 98% Approval</span>
+            <span>✦ 12,000+ Visas</span>
+            <span>✦ Since 2018</span>
           </div>
         </div>
-      </nav>
-
+      </aside>
     </>
   );
 }
+
+/* ════════════════════════════════════════════════════
+   ALL STYLES
+════════════════════════════════════════════════════ */
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500&display=swap');
+
+html { scroll-behavior: smooth; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ══ ROOT ══ */
+.nb-root {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+  background: rgba(8, 12, 22, 0.0);
+  transition:
+    background .45s ease,
+    backdrop-filter .45s ease,
+    box-shadow .45s ease,
+    opacity .65s ease,
+    transform .65s cubic-bezier(.16,1,.3,1);
+  opacity: 0; transform: translateY(-14px);
+}
+.nb-in { opacity: 1 !important; transform: translateY(0) !important; }
+
+.nb-scrolled {
+  background: rgba(8, 12, 22, 0.97) !important;
+  backdrop-filter: blur(22px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(180%) !important;
+  box-shadow: 0 2px 40px rgba(0,0,0,.55), 0 1px 0 rgba(212,175,55,.16) !important;
+}
+
+/* ── Top rule ── */
+.nb-rule {
+  height: 2.5px;
+  background: linear-gradient(90deg,
+    transparent 0%, #9F1239 10%,
+    #DC2626 22%, #D4AF37 42%,
+    #F5D76E 50%, #D4AF37 58%,
+    #DC2626 78%, #9F1239 90%, transparent 100%
+  );
+  background-size: 500px 100%;
+  animation: nbRule 3s linear infinite;
+}
+@keyframes nbRule { from{background-position:0 50%} to{background-position:500px 50%} }
+
+/* ── Bar ── */
+.nb-bar {
+  max-width: 1300px; margin: 0 auto; padding: 0 36px;
+  height: 72px; display: flex; align-items: center; gap: 28px; justify-content: space-between;
+}
+@media(max-width:768px){ .nb-bar { padding: 0 18px; height: 64px; } }
+
+/* ══ BRAND ══ */
+.nb-brand {
+  display: flex; align-items: center; gap: 13px;
+  text-decoration: none; flex-shrink: 0;
+  transition: opacity .2s;
+}
+.nb-brand:hover { opacity: .9; }
+
+.nb-logo-shell {
+  position: relative; width: 50px; height: 50px; flex-shrink: 0;
+}
+.nb-logo-glow {
+  position: absolute; inset: -2px; border-radius: 13px;
+  background: linear-gradient(135deg, #DC2626, #D4AF37, #DC2626);
+  background-size: 300%;
+  animation: nbGlow 4s linear infinite;
+  opacity: .75;
+}
+@keyframes nbGlow { 0%{background-position:0% 50%} 100%{background-position:300% 50%} }
+.nb-logo-box {
+  position: relative; z-index: 1;
+  width: 100%; height: 100%; border-radius: 12px;
+  background: #fff; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,.35);
+  animation: nbFloat 5s ease-in-out infinite;
+}
+@keyframes nbFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+.nb-logo-img { width: 44px; height: 44px; object-fit: contain; display: block; }
+
+.nb-live-dot {
+  position: absolute; bottom: 2px; right: 2px; z-index: 2;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #22C55E; border: 2px solid #080C18;
+  animation: nbLive 2.2s ease-in-out infinite;
+}
+@keyframes nbLive {
+  0%,100%{ box-shadow: 0 0 0 0 rgba(34,197,94,.65); }
+  50%    { box-shadow: 0 0 0 5px rgba(34,197,94,0); }
+}
+
+.nb-brand-words { line-height: 1; }
+.nb-brand-name {
+  font-family: 'Merriweather', serif;
+  font-size: 1.22rem; font-weight: 900;
+  line-height: 1.1; letter-spacing: 0.01em;
+}
+/* "Blue" — deep navy matching logo exactly */
+.nb-blue { color: #1B3A8A; }
+/* "Waves" — teal cyan matching the logo swoosh */
+.nb-gold-txt {
+  background: linear-gradient(135deg, #1DA1C8 0%, #38BDF8 55%, #0EA5E9 100%);
+  background-size: 200%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: nbShimmer 4s ease-in-out infinite alternate;
+}
+@keyframes nbShimmer { from{background-position:0% 50%} to{background-position:200% 50%} }
+/* Subtitle — thin tracked caps like "MANAGEMENT CONSULTANCY" in logo */
+.nb-brand-sub {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .46rem; font-weight: 500;
+  letter-spacing: .32em; text-transform: uppercase;
+  color: rgba(255,255,255,.38); margin-top: 5px;
+}
+
+/* ══ DESKTOP LINKS ══ */
+.nb-links {
+  display: flex; align-items: center; gap: 4px;
+}
+@media(max-width:900px){ .nb-links { display: none !important; } }
+
+.nb-link {
+  position: relative;
+  font-family: 'Montserrat', sans-serif; font-size: .71rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: rgba(255,255,255,.6); text-decoration: none;
+  padding: 8px 14px; border-radius: 7px;
+  transition: color .25s, background .25s;
+}
+.nb-link:hover { color: #fff; background: rgba(255,255,255,.06); }
+.nb-link.nb-active { color: #fff; }
+
+.nb-link-ul {
+  position: absolute; bottom: 5px; left: 14px; right: 14px; height: 2px;
+  background: linear-gradient(90deg, #DC2626, #D4AF37);
+  border-radius: 2px;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .3s cubic-bezier(.16,1,.3,1);
+}
+.nb-link:hover .nb-link-ul,
+.nb-link.nb-active .nb-link-ul { transform: scaleX(1); }
+
+/* ══ RIGHT ══ */
+.nb-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+.nb-tel {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: 'Poppins', sans-serif; font-size: .72rem; font-weight: 500;
+  color: rgba(255,255,255,.5); text-decoration: none; white-space: nowrap;
+  transition: color .2s;
+}
+.nb-tel:hover { color: #D4AF37; }
+@media(max-width:1100px){ .nb-tel { display: none !important; } }
+
+.nb-cta {
+  position: relative; overflow: hidden;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'Montserrat', sans-serif; font-size: .71rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: #0A0F1A;
+  background: linear-gradient(135deg, #F5D76E 0%, #D4AF37 55%, #B8921E 100%);
+  border: none; padding: 11px 22px; cursor: pointer; white-space: nowrap;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  transition: transform .28s ease, box-shadow .3s ease;
+}
+.nb-shine {
+  position: absolute; inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.3) 50%, transparent 70%);
+  transform: translateX(-100%); transition: transform .5s ease; pointer-events: none;
+}
+.nb-cta:hover .nb-shine { transform: translateX(100%); }
+.nb-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(212,175,55,.45); }
+@media(max-width:900px){ .nb-cta:not(.nb-sb-cta) { display: none !important; } }
+
+/* ══ HAMBURGER ══ */
+.nb-ham {
+  display: none; flex-direction: column; gap: 5px; cursor: pointer;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 9px; padding: 10px; flex-shrink: 0;
+  transition: background .2s, border-color .2s;
+}
+.nb-ham:hover { background: rgba(212,175,55,.1); border-color: rgba(212,175,55,.35); }
+@media(max-width:900px){ .nb-ham { display: flex !important; } }
+
+.nb-hline {
+  display: block; width: 20px; height: 2px;
+  background: #D4AF37; border-radius: 2px; transform-origin: center;
+  transition: transform .38s cubic-bezier(.4,0,.2,1), opacity .28s, width .3s;
+}
+.nb-ham-open .nb-hline:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nb-ham-open .nb-hline:nth-child(2) { opacity: 0; width: 0; }
+.nb-ham-open .nb-hline:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ══════════════════════════════════════════════
+   OVERLAY
+══════════════════════════════════════════════ */
+.nb-overlay {
+  position: fixed; inset: 0; z-index: 950;
+  background: rgba(4, 6, 14, 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  pointer-events: none;
+  transition: background .4s ease, backdrop-filter .4s ease;
+}
+.nb-overlay-in {
+  background: rgba(4, 6, 14, 0.72) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  pointer-events: all !important;
+}
+
+/* ══════════════════════════════════════════════
+   SIDEBAR PANEL
+══════════════════════════════════════════════ */
+.nb-sidebar {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  z-index: 999;
+  width: 320px; max-width: 88vw;
+
+  /* Deep gradient background */
+  background: linear-gradient(160deg, #0D1220 0%, #111827 40%, #0D1525 100%);
+  border-left: 1px solid rgba(212,175,55,.15);
+
+  display: flex; flex-direction: column;
+  overflow: hidden;
+
+  /* === SLIDE ANIMATION === */
+  transform: translateX(100%);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    transform .42s cubic-bezier(.16,1,.3,1),
+    opacity .38s ease,
+    visibility 0s linear .42s;
+
+  /* Subtle inner shadow on left */
+  box-shadow: -8px 0 60px rgba(0,0,0,.55), -1px 0 0 rgba(212,175,55,.08);
+}
+.nb-sidebar-in {
+  transform: translateX(0) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition:
+    transform .42s cubic-bezier(.16,1,.3,1),
+    opacity .38s ease,
+    visibility 0s linear 0s !important;
+}
+
+/* Background decoration */
+.nb-sidebar::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(220,38,38,.12) 0%, transparent 65%);
+  pointer-events: none;
+}
+.nb-sidebar::after {
+  content: '';
+  position: absolute; bottom: 40px; left: -40px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,175,55,.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* ── Sidebar header ── */
+.nb-sb-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 24px 18px;
+  flex-shrink: 0;
+}
+.nb-sb-brand { display: flex; align-items: center; gap: 12px; }
+.nb-sb-logo {
+  width: 46px; height: 46px; border-radius: 11px;
+  background: #fff; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,.35);
+  flex-shrink: 0;
+}
+.nb-sb-name { font-size: 1.05rem !important; }
+
+.nb-sb-close {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.65); cursor: pointer; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background .2s, color .2s, transform .3s;
+}
+.nb-sb-close:hover {
+  background: rgba(220,38,38,.2); border-color: rgba(220,38,38,.4);
+  color: #fff; transform: rotate(90deg);
+}
+
+/* ── Gold divider rule ── */
+.nb-sb-rule {
+  height: 1.5px; margin: 0 24px;
+  background: linear-gradient(90deg, rgba(220,38,38,.5), rgba(212,175,55,.6), transparent);
+  flex-shrink: 0;
+}
+
+/* ── Nav links ── */
+.nb-sb-links {
+  flex: 1; padding: 18px 16px; display: flex; flex-direction: column; gap: 4px;
+  overflow-y: auto;
+}
+
+.nb-sb-link {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border-radius: 12px;
+  text-decoration: none; color: rgba(255,255,255,.62);
+  border: 1px solid transparent;
+  /* Staggered entrance */
+  opacity: 0; transform: translateX(28px);
+  transition:
+    opacity .4s ease,
+    transform .4s cubic-bezier(.16,1,.3,1),
+    background .25s,
+    border-color .25s,
+    color .25s;
+}
+.nb-sb-link-in {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+}
+.nb-sb-link:hover {
+  background: rgba(255,255,255,.05);
+  border-color: rgba(212,175,55,.18);
+  color: #fff;
+}
+.nb-sb-link.nb-sb-active {
+  background: rgba(212,175,55,.08);
+  border-color: rgba(212,175,55,.28);
+  color: #fff;
+}
+.nb-sb-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.07);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; flex-shrink: 0;
+  transition: background .25s, border-color .25s;
+}
+.nb-sb-link:hover .nb-sb-icon,
+.nb-sb-link.nb-sb-active .nb-sb-icon {
+  background: rgba(212,175,55,.12);
+  border-color: rgba(212,175,55,.28);
+}
+.nb-sb-label {
+  flex: 1; font-family: 'Montserrat', sans-serif;
+  font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+}
+.nb-sb-arr {
+  opacity: 0; transform: translateX(-4px);
+  transition: opacity .2s, transform .2s; color: #D4AF37;
+}
+.nb-sb-link:hover .nb-sb-arr { opacity: 1; transform: translateX(0); }
+.nb-sb-link.nb-sb-active .nb-sb-arr { opacity: .6; transform: translateX(0); }
+
+/* ── Footer ── */
+.nb-sb-footer {
+  padding: 16px 20px 28px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0; display: flex; flex-direction: column; gap: 14px;
+}
+
+.nb-sb-cta {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: 'Montserrat', sans-serif; font-size: .76rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: #0A0F1A;
+  background: linear-gradient(135deg, #F5D76E 0%, #D4AF37 55%, #B8921E 100%);
+  border: none; border-radius: 10px; padding: 15px 24px; cursor: pointer; width: 100%;
+  /* Staggered entrance */
+  opacity: 0; transform: translateX(28px);
+  transition: opacity .4s ease, transform .4s cubic-bezier(.16,1,.3,1), box-shadow .3s, filter .2s;
+}
+.nb-sb-cta.nb-sb-link-in { opacity: 1 !important; transform: translateX(0) !important; }
+.nb-sb-cta:hover { box-shadow: 0 14px 36px rgba(212,175,55,.45); filter: brightness(1.06); }
+
+.nb-sb-contacts {
+  display: flex; flex-direction: column; gap: 8px;
+  /* Staggered entrance */
+  opacity: 0; transform: translateX(28px);
+  transition: opacity .4s ease, transform .4s cubic-bezier(.16,1,.3,1);
+}
+.nb-sb-contacts.nb-sb-link-in { opacity: 1 !important; transform: translateX(0) !important; }
+
+.nb-sb-contact-link {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: 'Poppins', sans-serif; font-size: .74rem; font-weight: 400;
+  color: rgba(255,255,255,.45); text-decoration: none;
+  padding: 8px 12px; border-radius: 8px;
+  transition: color .2s, background .2s;
+}
+.nb-sb-contact-link:hover {
+  color: #D4AF37; background: rgba(212,175,55,.07);
+}
+
+.nb-sb-trust {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  /* Staggered entrance */
+  opacity: 0; transform: translateX(28px);
+  transition: opacity .4s ease, transform .4s cubic-bezier(.16,1,.3,1);
+}
+.nb-sb-trust.nb-sb-link-in { opacity: 1 !important; transform: translateX(0) !important; }
+.nb-sb-trust span {
+  font-family: 'Montserrat', sans-serif; font-size: .6rem; font-weight: 600;
+  color: rgba(212,175,55,.55); letter-spacing: .08em;
+}
+
+/* ── No horizontal scrollbar from sidebar ── */
+body { overflow-x: hidden; }
+`;

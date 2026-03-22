@@ -1,789 +1,454 @@
+import React from "react";
 import { useEffect, useRef, useState } from "react";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   BlueWave Consultation — Ultra-Premium Contact Section
-   • Live Google Maps embed (Amber Gem Tower, Ajman, UAE)
-   • Animated contact form with gold focus states & validation
-   • Full office address: CWS-1V-224954 · 26th Floor · Amber Gem Tower
-     Sheikh Khalifa Street, Ajman, United Arab Emirates
-   • WhatsApp / Phone / Email / Office Hours — bilingual EN + Arabic
-   • Floating particles, scan line, grid texture — matches full design system
-   • IntersectionObserver scroll reveals
-   • Cinzel × Amiri × Outfit typography
-══════════════════════════════════════════════════════════════════════════════ */
+const PHONE      = "+971 50 658 0557";
+const PHONE_LINK = "tel:+971506580557";
+const WA_LINK    = "https://wa.me/971506580557";
+const EMAIL      = "info@bluewaveconsultation.ae";
 
-/* ── Scroll reveal hook ─────────────────────────────────────────────────── */
-function useReveal(threshold = 0.12) {
-  const ref = useRef(null);
-  const [v, setV] = useState(false);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setV(true); obs.disconnect(); } },
-      { threshold }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return [ref, v];
-}
+// AJMAN
+const MAPS_LINK_AJMAN = "https://maps.google.com/?q=Amber+Gem+Tower+Ajman+UAE";
+const MAP_EMBED_AJMAN = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.3!2d55.4373!3d25.4078!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f5679b79cbc61%3A0x76d61b4adb0dae78!2sAmber%20Gem%20Tower%2C%20Ajman!5e0!3m2!1sen!2sae!4v1710000000000";
 
-/* ── Contact info ───────────────────────────────────────────────────────── */
-const CONTACT_DETAILS = [
-  {
-    icon: "📍",
-    labelEn: "Office Address",
-    labelAr: "عنوان المكتب",
-    lineEn: ["Office No. CWS-1V-224954", "26th Floor, Amber Gem Tower", "Sheikh Khalifa Street", "Ajman, United Arab Emirates"],
-    lineAr: ["مكتب رقم CWS-1V-224954", "الطابق السادس والعشرون، برج امبرجم", "شارع الشيخ خليفة", "عجمان، الإمارات العربية المتحدة"],
-    color: "#D4AF37",
-    action: null,
+// DUBAI — replace with your real address & embed link
+const MAPS_LINK_DUBAI = "https://maps.google.com/?q=Business+Bay+Dubai+UAE";
+const MAP_EMBED_DUBAI = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3610.2!2d55.2650!3d25.1850!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f69291da7a9b5%3A0x8e35e6e9b8e3a2e1!2sBusiness+Bay%2C+Dubai!5e0!3m2!1sen!2sae!4v1710000000001";
+
+// ─── All UI strings in one object — easy to edit ────────────────────────────
+const T = {
+  en: {
+    eyebrow:      "Get In Touch",
+    h2a:          "Visit Us or Reach Out —",
+    h2b:          "We're Here to Help.",
+    sub:          "Our consultants are available 6 days a week at our Ajman & Dubai offices. Walk in, call, or message us anytime.",
+    chips: [
+      { label: "Call Us",      sub: PHONE },
+      { label: "WhatsApp",     sub: "Quick reply" },
+      { label: "Email Us",     sub: EMAIL },
+      { label: "Our Offices",  sub: "Ajman & Dubai" },
+    ],
+    officeAddress: "Office Address",
+    workingHours:  "Working Hours",
+    satThu:        "Saturday – Thursday",
+    hours:         "9:00 AM – 5:30 PM",
+    friday:        "Friday",
+    closed:        "Closed",
+    whatsapp:      "WhatsApp Us Now",
+    openMaps:      "Open in Google Maps ↗",
+    trust: [
+      { num: "15+",  lbl: "Years"    },
+      { num: "98%",  lbl: "Approval" },
+      { num: "12K+", lbl: "Families" },
+    ],
+    offices: [
+      {
+        city:      "Ajman",
+        flag:      "🇦🇪",
+        tag:       "Office No. CWS-1V-224954",
+        lines:     ["26th Floor, Amber Gem Tower", "Sheikh Khalifa Street, Ajman", "United Arab Emirates"],
+        badgeName: "📍 Amber Gem Tower, Ajman",
+        badgeAddr: "26th Floor · Sheikh Khalifa Street · UAE",
+        mapsLink:  MAPS_LINK_AJMAN,
+        mapEmbed:  MAP_EMBED_AJMAN,
+      },
+      {
+        city:      "Dubai",
+        flag:      "🏙️",
+        tag:       "Office No. — Update Soon",  // ⚠️ replace with real number
+        lines:     ["Business Bay, Dubai", "Sheikh Zayed Road", "United Arab Emirates"],
+        badgeName: "📍 Business Bay, Dubai",
+        badgeAddr: "Sheikh Zayed Road · UAE",
+        mapsLink:  MAPS_LINK_DUBAI,
+        mapEmbed:  MAP_EMBED_DUBAI,
+      },
+    ],
   },
-  {
-    icon: "📞",
-    labelEn: "Phone",
-    labelAr: "الهاتف",
-    lineEn: ["+971 XX XXX XXXX", "Sat–Thu: 9 AM – 6 PM GST"],
-    lineAr: ["+٩٧١ XX XXX XXXX", "السبت–الخميس: ٩ ص – ٦ م (ت.خ.غ)"],
-    color: "#4FC3F7",
-    action: "tel:+971XXXXXXXXX",
+  ar: {
+    eyebrow:      "تواصل معنا",
+    h2a:          "زورنا أو تواصل معنا —",
+    h2b:          "نحن هنا لمساعدتك.",
+    sub:          "مستشارونا متاحون 6 أيام في الأسبوع في مكاتبنا بعجمان ودبي. تفضل بالزيارة أو اتصل أو راسلنا في أي وقت.",
+    chips: [
+      { label: "اتصل بنا",   sub: PHONE },
+      { label: "واتساب",     sub: "رد سريع" },
+      { label: "راسلنا",     sub: EMAIL },
+      { label: "مكاتبنا",    sub: "عجمان ودبي" },
+    ],
+    officeAddress: "عنوان المكتب",
+    workingHours:  "ساعات العمل",
+    satThu:        "السبت – الخميس",
+    hours:         "٩:٠٠ ص – ٥:٣٠ م",
+    friday:        "الجمعة",
+    closed:        "مغلق",
+    whatsapp:      "تواصل عبر واتساب",
+    openMaps:      "فتح في خرائط جوجل ↗",
+    trust: [
+      { num: "15+",  lbl: "سنة"   },
+      { num: "98%",  lbl: "قبول"  },
+      { num: "12K+", lbl: "عائلة" },
+    ],
+    offices: [
+      {
+        city:      "عجمان",
+        flag:      "🇦🇪",
+        tag:       "رقم المكتب: CWS-1V-224954",
+        lines:     ["الطابق السادس والعشرون، برج أمبر جيم", "شارع الشيخ خليفة، عجمان", "الإمارات العربية المتحدة"],
+        badgeName: "📍 برج أمبر جيم، عجمان",
+        badgeAddr: "الطابق السادس والعشرون · شارع الشيخ خليفة",
+        mapsLink:  MAPS_LINK_AJMAN,
+        mapEmbed:  MAP_EMBED_AJMAN,
+      },
+      {
+        city:      "دبي",
+        flag:      "🏙️",
+        tag:       "رقم المكتب — قريباً",        // ⚠️ replace with real number
+        lines:     ["الخليج التجاري، دبي", "شارع الشيخ زايد", "الإمارات العربية المتحدة"],
+        badgeName: "📍 الخليج التجاري، دبي",
+        badgeAddr: "شارع الشيخ زايد · الإمارات",
+        mapsLink:  MAPS_LINK_DUBAI,
+        mapEmbed:  MAP_EMBED_DUBAI,
+      },
+    ],
   },
-  {
-    icon: "💬",
-    labelEn: "WhatsApp",
-    labelAr: "واتساب",
-    lineEn: ["+971 XX XXX XXXX", "Quick response guaranteed"],
-    lineAr: ["+٩٧١ XX XXX XXXX", "استجابة سريعة مضمونة"],
-    color: "#81C784",
-    action: "https://wa.me/971XXXXXXXXX",
-  },
-  {
-    icon: "📧",
-    labelEn: "Email",
-    labelAr: "البريد الإلكتروني",
-    lineEn: ["info@bluewaveconsultation.ae", "We reply within 24 hours"],
-    lineAr: ["info@bluewaveconsultation.ae", "نرد خلال ٢٤ ساعة"],
-    color: "#CE93D8",
-    action: "mailto:info@bluewaveconsultation.ae",
-  },
-];
+};
 
-const SERVICES_OPTIONS = [
-  "Study Visa · تأشيرة الدراسة",
-  "B1/B2 Visa · تأشيرة B1/B2",
-  "Work Visa · تأشيرة العمل",
-  "Residency Visa · تأشيرة الإقامة",
-  "Investment / Golden Visa · التأشيرة الذهبية",
-  "Family Visa · تأشيرة العائلة",
-  "Other · أخرى",
-];
+// ─── Icons ────────────────────────────────────────────────────────────────────
+function PhoneIcon({ size = 20, color }) { return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.86 9.5 19.79 19.79 0 01.77 1a2 2 0 012-2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.34 1.85.574 2.81.7A2 2 0 0122 16.92z" /></svg>); }
+function WAIcon({ size = 20, color }) { return (<svg width={size} height={size} viewBox="0 0 24 24" fill={color}><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>); }
+function MailIcon({ size = 20, color }) { return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>); }
+function PinIcon({ size = 20, color }) { return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></svg>); }
+function ClockIcon({ size = 20, color }) { return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>); }
 
-/* ── Working hours ──────────────────────────────────────────────────────── */
-const HOURS = [
-  { day: "Saturday – Thursday", dayAr: "السبت – الخميس", time: "9:00 AM – 6:00 PM", timeAr: "٩:٠٠ ص – ٦:٠٠ م", open: true },
-  { day: "Friday", dayAr: "الجمعة", time: "Closed", timeAr: "مغلق", open: false },
-];
+const CHIP_ICONS  = [PhoneIcon, WAIcon, MailIcon, PinIcon];
+const CHIP_COLORS = ["#3B82F6", "#22C55E", "#A78BFA", "#F59E0B"];
+const CHIP_HREFS  = [PHONE_LINK, WA_LINK, `mailto:${EMAIL}`, MAPS_LINK_AJMAN];
 
-/* ── Particles ──────────────────────────────────────────────────────────── */
-const PARTICLES = Array.from({ length: 22 }, (_, i) => ({
-  id: i, x: Math.random() * 100, y: Math.random() * 100,
-  s: 1.2 + Math.random() * 2.4, dur: 5 + Math.random() * 8,
-  del: Math.random() * 6, gold: i % 3 !== 0,
-}));
+let cssInjected = false;
+function injectCSS(css) { if (cssInjected) return; cssInjected = true; const el = document.createElement("style"); el.textContent = css; document.head.appendChild(el); }
 
-/* ── All CSS ─────────────────────────────────────────────────────────────── */
-const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Amiri:wght@400;700&family=Outfit:wght@300;400;500;600&display=swap');
-
-:root{
-  --g1:#B8941F;--g2:#D4AF37;--g3:#F5D76E;
-  --navy:#06101E;--navy2:#0A1F44;--navy3:#0D2255;
-  --teal:#00AEEF;--teal2:#38C8FF;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-
-/* ── Keyframes ── */
-@keyframes ct-shimmer  {0%{background-position:-700px 0}100%{background-position:700px 0}}
-@keyframes ct-fadeUp   {from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
-@keyframes ct-fadeIn   {from{opacity:0}to{opacity:1}}
-@keyframes ct-pulse    {0%{box-shadow:0 0 0 0 rgba(212,175,55,.65)}70%{box-shadow:0 0 0 16px rgba(212,175,55,0)}100%{box-shadow:0 0 0 0 rgba(212,175,55,0)}}
-@keyframes ct-scan     {0%{left:-40%}100%{left:130%}}
-@keyframes ct-float    {0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@keyframes ct-dotBlink {0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.65)}}
-@keyframes ct-mapPulse {0%{transform:translate(-50%,-100%) scale(1)}50%{transform:translate(-50%,-100%) scale(1.18)}100%{transform:translate(-50%,-100%) scale(1)}}
-@keyframes ct-ringExp  {0%{transform:translate(-50%,-50%) scale(1);opacity:.6}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
-@keyframes ct-inputGlow{0%,100%{box-shadow:0 0 0 0 rgba(212,175,55,0)}50%{box-shadow:0 0 0 4px rgba(212,175,55,.18)}}
-@keyframes ct-successPop{from{opacity:0;transform:scale(.85) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-@keyframes ct-spinLoader{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-
-.ct-reveal{opacity:0;transform:translateY(28px);transition:opacity .72s cubic-bezier(.22,1,.36,1),transform .72s cubic-bezier(.22,1,.36,1);}
-.ct-reveal.on{opacity:1;transform:none;}
-
-/* ── PAGE ── */
-.ct-page{
-  background:var(--navy);
-  position:relative;overflow:hidden;
-  padding-bottom:0;
-}
-.ct-grid{
-  position:absolute;inset:0;pointer-events:none;
-  background-image:linear-gradient(rgba(212,175,55,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,.028) 1px,transparent 1px);
-  background-size:65px 65px;
-}
-.ct-scan-line{
-  position:absolute;top:0;height:100%;width:40%;pointer-events:none;
-  background:linear-gradient(90deg,transparent,rgba(212,175,55,.04),transparent);
-  animation:ct-scan 11s linear infinite;z-index:1;
-}
-.ct-orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(70px);}
-
-/* ── SECTION HEADER ── */
-.ct-header{
-  text-align:center;padding:88px 28px 60px;
-  position:relative;z-index:2;max-width:900px;margin:0 auto;
-}
-.ct-eyebrow{
-  display:inline-flex;align-items:center;gap:10px;
-  background:rgba(212,175,55,.09);border:1px solid rgba(212,175,55,.28);
-  border-radius:100px;padding:7px 22px;
-  font-family:'Outfit',sans-serif;font-size:.65rem;font-weight:500;
-  letter-spacing:.28em;text-transform:uppercase;color:var(--g2);margin-bottom:22px;
-}
-.ct-eyebrow-dot{width:7px;height:7px;border-radius:50%;background:var(--g2);animation:ct-dotBlink 2s ease-in-out infinite;display:inline-block;}
-.ct-h1{
-  font-family:'Cinzel',serif;font-weight:700;
-  font-size:clamp(2.2rem,5.5vw,4.2rem);
-  color:#fff;letter-spacing:.02em;line-height:1.1;
-}
-.ct-h1 .gold{
-  background:linear-gradient(135deg,var(--g1),var(--g2),var(--g3),var(--g2));
-  background-size:280%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  animation:ct-shimmer 5s linear infinite;
-}
-.ct-divider{
-  width:130px;height:1.5px;margin:16px auto;
-  background:linear-gradient(90deg,transparent,var(--g2),var(--g3),var(--g2),transparent);
-  background-size:400px;animation:ct-shimmer 3s linear infinite;
-}
-.ct-h2{
-  font-family:'Amiri',serif;font-weight:700;
-  font-size:clamp(1.5rem,3.5vw,2.5rem);
-  direction:rtl;color:rgba(245,215,110,.82);margin-top:8px;line-height:1.6;
-}
-.ct-sub{
-  font-family:'Outfit',sans-serif;font-weight:300;
-  font-size:clamp(.9rem,1.6vw,1.08rem);color:rgba(255,255,255,.6);
-  max-width:560px;margin:14px auto 0;line-height:1.9;
-}
-.ct-sub-ar{
-  font-family:'Amiri',serif;font-size:clamp(.88rem,1.5vw,1.02rem);
-  direction:rtl;color:rgba(212,175,55,.52);max-width:540px;margin:6px auto 0;line-height:2.1;
-}
-
-/* ── MAIN GRID ── */
-.ct-main{
-  position:relative;z-index:2;
-  max-width:1200px;margin:0 auto;
-  padding:0 24px 80px;
-  display:grid;
-  grid-template-columns:1fr 1.05fr;
-  gap:28px;
-  align-items:start;
-}
-@media(max-width:960px){.ct-main{grid-template-columns:1fr;}}
-
-/* ── LEFT COLUMN ── */
-.ct-left{display:flex;flex-direction:column;gap:20px;}
-
-/* ── CONTACT INFO CARDS ── */
-.ct-info-card{
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:16px;padding:22px 22px;
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  position:relative;overflow:hidden;
-  transition:transform .35s cubic-bezier(.34,1.56,.64,1),box-shadow .35s,border-color .3s,background .3s;
-  cursor:default;
-}
-.ct-info-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--cc,#D4AF37),transparent);
-  opacity:.7;
-}
-.ct-info-card.clickable{cursor:pointer;}
-.ct-info-card.clickable:hover{
-  transform:translateY(-5px) scale(1.02);
-  border-color:var(--cc,rgba(212,175,55,.5));
-  background:rgba(255,255,255,.07);
-  box-shadow:0 18px 45px rgba(0,0,0,.45),0 0 28px rgba(212,175,55,.1);
-}
-.ct-info-row{display:flex;align-items:flex-start;gap:16px;}
-.ct-info-icon{
-  width:48px;height:48px;border-radius:12px;flex-shrink:0;
-  background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);
-  display:flex;align-items:center;justify-content:center;font-size:1.3rem;
-  transition:background .3s,box-shadow .3s,border-color .3s;
-  animation:ct-float 5s ease-in-out infinite;
-}
-.ct-info-card.clickable:hover .ct-info-icon{
-  background:rgba(255,255,255,.1);
-  border-color:var(--cc,rgba(212,175,55,.4));
-  box-shadow:0 0 20px var(--cc,rgba(212,175,55,.35));
-}
-.ct-info-label{
-  font-family:'Outfit',sans-serif;font-size:.58rem;font-weight:600;
-  letter-spacing:.24em;text-transform:uppercase;
-  color:var(--cc,#D4AF37);margin-bottom:6px;
-}
-.ct-info-label-ar{font-family:'Amiri',serif;font-size:.65rem;direction:rtl;color:rgba(212,175,55,.5);margin-bottom:8px;}
-.ct-info-line{font-family:'Outfit',sans-serif;font-size:.86rem;font-weight:400;color:rgba(255,255,255,.82);line-height:1.6;}
-.ct-info-line-ar{font-family:'Amiri',serif;font-size:.86rem;direction:rtl;color:rgba(212,175,55,.55);line-height:1.8;margin-top:2px;}
-
-/* Arrow indicator for clickable */
-.ct-info-arrow{
-  margin-left:auto;width:28px;height:28px;border-radius:50%;
-  background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.22);
-  display:flex;align-items:center;justify-content:center;
-  font-size:.75rem;color:var(--cc,#D4AF37);flex-shrink:0;
-  transition:transform .3s,background .3s;
-}
-.ct-info-card.clickable:hover .ct-info-arrow{transform:translateX(3px);background:rgba(212,175,55,.2);}
-
-/* ── HOURS CARD ── */
-.ct-hours-card{
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:16px;padding:22px 22px;
-  backdrop-filter:blur(14px);position:relative;overflow:hidden;
-}
-.ct-hours-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,#FFB74D,transparent);opacity:.7;
-}
-.ct-hours-label{
-  font-family:'Outfit',sans-serif;font-size:.58rem;font-weight:600;
-  letter-spacing:.24em;text-transform:uppercase;color:#FFB74D;margin-bottom:14px;
-  display:flex;align-items:center;gap:8px;
-}
-.ct-hours-label::before{content:'🕐';font-size:1rem;}
-.ct-hours-label-ar{font-family:'Amiri',serif;font-size:.7rem;direction:rtl;color:rgba(212,175,55,.5);margin-bottom:14px;}
-.ct-hours-row{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);
-}
-.ct-hours-row:last-child{border-bottom:none;padding-bottom:0;}
-.ct-hours-day{font-family:'Outfit',sans-serif;font-size:.8rem;font-weight:400;color:rgba(255,255,255,.7);}
-.ct-hours-day-ar{font-family:'Amiri',serif;font-size:.78rem;direction:rtl;color:rgba(212,175,55,.45);margin-top:1px;}
-.ct-hours-time{
-  font-family:'Outfit',sans-serif;font-size:.78rem;font-weight:500;
-  text-align:right;
-}
-.ct-hours-time.open{color:#81C784;}
-.ct-hours-time.closed{color:rgba(255,100,100,.7);}
-.ct-hours-time-ar{font-family:'Amiri',serif;font-size:.75rem;direction:rtl;color:rgba(212,175,55,.4);margin-top:1px;text-align:right;}
-
-/* Office tag */
-.ct-office-tag{
-  display:inline-flex;align-items:center;gap:8px;
-  background:rgba(212,175,55,.07);border:1px solid rgba(212,175,55,.2);
-  border-radius:8px;padding:7px 14px;
-  font-family:'Outfit',sans-serif;font-size:.68rem;letter-spacing:.12em;
-  text-transform:uppercase;color:rgba(212,175,55,.75);margin-top:14px;
-}
-
-/* ── RIGHT COLUMN ── */
-.ct-right{display:flex;flex-direction:column;gap:20px;}
-
-/* ── MAP CONTAINER ── */
-.ct-map-wrap{
-  position:relative;border-radius:20px;overflow:hidden;
-  border:1px solid rgba(212,175,55,.22);
-  box-shadow:0 20px 55px rgba(0,0,0,.5),0 0 0 1px rgba(212,175,55,.1);
-  height:300px;
-}
-/* Gold shimmer top bar on map */
-.ct-map-wrap::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;z-index:3;
-  background:linear-gradient(90deg,transparent,var(--g2),var(--g3),var(--g2),transparent);
-  background-size:400px;animation:ct-shimmer 3s linear infinite;
-}
-.ct-map-iframe{
-  width:100%;height:100%;border:none;display:block;
-  filter:saturate(0.6) brightness(0.8) contrast(1.1);
-  transition:filter .4s ease;
-}
-.ct-map-wrap:hover .ct-map-iframe{
-  filter:saturate(0.85) brightness(0.9) contrast(1.05);
-}
-/* Map overlay label */
-.ct-map-badge{
-  position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
-  z-index:3;
-  background:rgba(6,16,30,.92);
-  border:1px solid rgba(212,175,55,.35);
-  border-radius:12px;padding:10px 20px;
-  backdrop-filter:blur(14px);
-  white-space:nowrap;text-align:center;
-}
-.ct-map-badge-title{font-family:'Cinzel',serif;font-size:.82rem;font-weight:600;color:var(--g2);}
-.ct-map-badge-sub{font-family:'Outfit',sans-serif;font-size:.62rem;letter-spacing:.1em;color:rgba(255,255,255,.5);margin-top:2px;}
-.ct-map-badge-ar{font-family:'Amiri',serif;font-size:.72rem;direction:rtl;color:rgba(212,175,55,.55);margin-top:2px;}
-.ct-map-open-btn{
-  position:absolute;top:14px;right:14px;z-index:3;
-  background:rgba(6,16,30,.85);border:1px solid rgba(212,175,55,.3);
-  border-radius:8px;padding:7px 14px;
-  font-family:'Outfit',sans-serif;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
-  color:rgba(212,175,55,.8);cursor:pointer;backdrop-filter:blur(10px);
-  text-decoration:none;display:inline-flex;align-items:center;gap:5px;
-  transition:background .3s,border-color .3s;
-}
-.ct-map-open-btn:hover{background:rgba(212,175,55,.14);border-color:rgba(212,175,55,.6);}
-
-/* ── CONTACT FORM ── */
-.ct-form-card{
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:20px;padding:32px 28px;
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  position:relative;overflow:hidden;
-}
-.ct-form-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--g2),var(--g3),var(--g2),transparent);
-  background-size:400px;animation:ct-shimmer 3s linear infinite;
-}
-.ct-form-title{
-  font-family:'Cinzel',serif;font-weight:700;font-size:1.35rem;
-  color:#fff;margin-bottom:4px;
-}
-.ct-form-title-ar{font-family:'Amiri',serif;font-size:1.1rem;direction:rtl;color:rgba(212,175,55,.7);margin-bottom:20px;}
-
-.ct-form{display:flex;flex-direction:column;gap:16px;}
-
-/* Field */
-.ct-field{display:flex;flex-direction:column;gap:6px;}
-.ct-field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-@media(max-width:520px){.ct-field-row{grid-template-columns:1fr;}}
-
-.ct-label{
-  font-family:'Outfit',sans-serif;font-size:.62rem;font-weight:600;
-  letter-spacing:.2em;text-transform:uppercase;
-  color:rgba(212,175,55,.65);
-}
-.ct-label-ar{font-family:'Amiri',serif;font-size:.68rem;direction:rtl;color:rgba(212,175,55,.45);}
-
-.ct-input,.ct-select,.ct-textarea{
-  font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:300;
-  color:rgba(255,255,255,.88);
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.1);
-  border-radius:10px;padding:13px 16px;
-  outline:none;width:100%;
-  transition:border-color .3s,background .3s,box-shadow .3s;
-  appearance:none;-webkit-appearance:none;
-}
-.ct-input::placeholder,.ct-textarea::placeholder{color:rgba(255,255,255,.28);}
-.ct-input:focus,.ct-select:focus,.ct-textarea:focus{
-  border-color:rgba(212,175,55,.6);
-  background:rgba(212,175,55,.05);
-  box-shadow:0 0 0 3px rgba(212,175,55,.12),0 4px 16px rgba(0,0,0,.2);
-}
-.ct-input.error,.ct-select.error,.ct-textarea.error{border-color:rgba(255,100,100,.5);}
-.ct-select option{background:#0D2255;color:#fff;}
-.ct-textarea{resize:vertical;min-height:110px;line-height:1.65;}
-
-/* Phone prefix row */
-.ct-phone-row{display:flex;gap:10px;}
-.ct-phone-prefix{
-  font-family:'Outfit',sans-serif;font-size:.88rem;
-  color:rgba(212,175,55,.8);background:rgba(212,175,55,.08);
-  border:1px solid rgba(212,175,55,.22);border-radius:10px;
-  padding:13px 14px;white-space:nowrap;flex-shrink:0;
-  display:flex;align-items:center;gap:6px;
-}
-
-/* Submit button */
-.ct-submit{
-  font-family:'Outfit',sans-serif;font-weight:600;font-size:.75rem;
-  letter-spacing:.18em;text-transform:uppercase;color:var(--navy);
-  background:linear-gradient(135deg,var(--g1),var(--g2),var(--g3),var(--g2));
-  background-size:280%;border:none;border-radius:10px;
-  padding:15px 32px;cursor:pointer;width:100%;
-  position:relative;overflow:hidden;
-  animation:ct-pulse 3s ease-out infinite,ct-shimmer 5s linear infinite;
-  transition:transform .25s,box-shadow .3s;margin-top:4px;
-}
-.ct-submit::before{
-  content:'';position:absolute;top:0;left:-80%;width:55%;height:100%;
-  background:linear-gradient(110deg,transparent,rgba(255,255,255,.4),transparent);
-  transition:left .55s;pointer-events:none;
-}
-.ct-submit:hover::before{left:160%;}
-.ct-submit:hover{
-  transform:translateY(-2px);animation:none;background-position:right;
-  box-shadow:0 12px 36px rgba(212,175,55,.5);
-}
-.ct-submit:disabled{opacity:.6;cursor:not-allowed;transform:none;animation:none;}
-.ct-submit-ar{font-family:'Amiri',serif;font-size:.95rem;direction:rtl;display:block;opacity:.75;margin-top:3px;}
-
-/* Loader */
-.ct-loader{
-  display:inline-block;width:16px;height:16px;border-radius:50%;
-  border:2px solid rgba(6,16,30,.4);border-top-color:var(--navy);
-  animation:ct-spinLoader .7s linear infinite;
-  vertical-align:middle;margin-right:8px;
-}
-
-/* Success state */
-.ct-success{
-  text-align:center;padding:40px 20px;
-  animation:ct-successPop .55s cubic-bezier(.22,1,.36,1) both;
-}
-.ct-success-icon{font-size:3rem;display:block;margin-bottom:14px;animation:ct-float 3s ease-in-out infinite;}
-.ct-success-h{font-family:'Cinzel',serif;font-weight:700;font-size:1.4rem;color:var(--g2);margin-bottom:6px;}
-.ct-success-ar{font-family:'Amiri',serif;font-size:1.1rem;direction:rtl;color:rgba(212,175,55,.7);margin-bottom:12px;}
-.ct-success-sub{font-family:'Outfit',sans-serif;font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.75;}
-
-/* Error message */
-.ct-err-msg{font-family:'Outfit',sans-serif;font-size:.7rem;color:rgba(255,120,120,.8);margin-top:3px;}
-
-/* ── SOCIAL / QUICK CONTACT ROW ── */
-.ct-social-strip{
-  position:relative;z-index:2;
-  max-width:1200px;margin:0 auto 0;padding:0 24px 24px;
-  display:flex;flex-wrap:wrap;gap:12px;justify-content:center;
-}
-.ct-social-chip{
-  display:flex;align-items:center;gap:10px;
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.09);
-  border-radius:12px;padding:12px 22px;
-  text-decoration:none;cursor:pointer;
-  transition:transform .3s cubic-bezier(.34,1.56,.64,1),background .3s,border-color .3s,box-shadow .3s;
-}
-.ct-social-chip:hover{
-  transform:translateY(-5px) scale(1.04);
-  background:rgba(255,255,255,.08);
-  border-color:var(--scc,rgba(212,175,55,.5));
-  box-shadow:0 12px 30px rgba(0,0,0,.4),0 0 20px var(--scc,rgba(212,175,55,.12));
-}
-.ct-social-icon{font-size:1.4rem;line-height:1;}
-.ct-social-en{font-family:'Outfit',sans-serif;font-size:.75rem;font-weight:500;letter-spacing:.08em;color:rgba(255,255,255,.82);}
-.ct-social-ar{font-family:'Amiri',serif;font-size:.75rem;direction:rtl;color:rgba(212,175,55,.55);}
-
-/* ── BOTTOM GOLD DIVIDER ── */
-.ct-bottom-bar{
-  height:3px;
-  background:linear-gradient(90deg,transparent,var(--g1) 20%,var(--g2) 40%,var(--g3) 50%,var(--g2) 60%,var(--g1) 80%,transparent);
-  background-size:700px 100%;
-  animation:ct-shimmer 3.5s linear infinite;
-}
-
-@media(max-width:520px){
-  .ct-header{padding:70px 18px 50px;}
-  .ct-main{padding:0 14px 60px;}
-  .ct-form-card{padding:24px 18px;}
-  .ct-info-card{padding:18px;}
-  .ct-hours-card{padding:18px;}
-}
-`;
-
-/* ── Form Component ──────────────────────────────────────────────────────── */
-function ContactForm() {
-  const [form, setForm] = useState({
-    firstName: "", lastName: "", email: "", phone: "", service: "", message: "",
-  });
-  const [errors, setErrors] = useState({});
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  const validate = () => {
-    const e = {};
-    if (!form.firstName.trim()) e.firstName = "Required · مطلوب";
-    if (!form.lastName.trim())  e.lastName  = "Required · مطلوب";
-    if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = "Valid email required · بريد صحيح مطلوب";
-    if (!form.service) e.service = "Please select a service · اختر خدمة";
-    if (!form.message.trim()) e.message = "Please enter your message · أدخل رسالتك";
-    return e;
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm(p => ({ ...p, [name]: value }));
-    if (errors[name]) setErrors(p => ({ ...p, [name]: undefined }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
-    setSending(true);
-    // Simulate API call — replace with your actual endpoint
-    setTimeout(() => { setSending(false); setSent(true); }, 1800);
-  };
-
-  if (sent) return (
-    <div className="ct-success">
-      <span className="ct-success-icon">✅</span>
-      <div className="ct-success-h">Message Received!</div>
-      <div className="ct-success-ar">تم استلام رسالتك!</div>
-      <p className="ct-success-sub">
-        Thank you for reaching out to BlueWave Consultation.<br/>
-        Our expert team will contact you within 24 hours.<br/>
-        <span style={{fontFamily:"'Amiri',serif",direction:"rtl",display:"block",marginTop:8,color:"rgba(212,175,55,.6)"}}>
-          شكراً لتواصلك مع بلو ويف. سيتواصل معك فريقنا خلال ٢٤ ساعة.
-        </span>
-      </p>
-    </div>
-  );
-
-  return (
-    <form className="ct-form" onSubmit={handleSubmit} noValidate>
-      {/* Name row */}
-      <div className="ct-field-row">
-        <div className="ct-field">
-          <label className="ct-label">First Name · الاسم الأول</label>
-          <input className={`ct-input${errors.firstName ? " error" : ""}`}
-            name="firstName" placeholder="e.g. Ahmed" value={form.firstName} onChange={handleChange}/>
-          {errors.firstName && <span className="ct-err-msg">{errors.firstName}</span>}
-        </div>
-        <div className="ct-field">
-          <label className="ct-label">Last Name · اسم العائلة</label>
-          <input className={`ct-input${errors.lastName ? " error" : ""}`}
-            name="lastName" placeholder="e.g. Al-Mansouri" value={form.lastName} onChange={handleChange}/>
-          {errors.lastName && <span className="ct-err-msg">{errors.lastName}</span>}
-        </div>
-      </div>
-
-      {/* Email */}
-      <div className="ct-field">
-        <label className="ct-label">Email Address · البريد الإلكتروني</label>
-        <input className={`ct-input${errors.email ? " error" : ""}`}
-          name="email" type="email" placeholder="you@example.com" value={form.email} onChange={handleChange}/>
-        {errors.email && <span className="ct-err-msg">{errors.email}</span>}
-      </div>
-
-      {/* Phone */}
-      <div className="ct-field">
-        <label className="ct-label">Phone Number · رقم الهاتف</label>
-        <div className="ct-phone-row">
-          <div className="ct-phone-prefix">🇦🇪 +971</div>
-          <input className="ct-input" name="phone" placeholder="XX XXX XXXX"
-            value={form.phone} onChange={handleChange} style={{flex:1}}/>
-        </div>
-      </div>
-
-      {/* Service */}
-      <div className="ct-field">
-        <label className="ct-label">Service Needed · الخدمة المطلوبة</label>
-        <select className={`ct-select${errors.service ? " error" : ""}`}
-          name="service" value={form.service} onChange={handleChange}>
-          <option value="">Select a service / اختر خدمة</option>
-          {SERVICES_OPTIONS.map((s, i) => <option key={i} value={s}>{s}</option>)}
-        </select>
-        {errors.service && <span className="ct-err-msg">{errors.service}</span>}
-      </div>
-
-      {/* Message */}
-      <div className="ct-field">
-        <label className="ct-label">Your Message · رسالتك</label>
-        <textarea className={`ct-textarea${errors.message ? " error" : ""}`}
-          name="message"
-          placeholder="Tell us about your immigration needs... / أخبرنا عن احتياجاتك في مجال الهجرة..."
-          value={form.message} onChange={handleChange}/>
-        {errors.message && <span className="ct-err-msg">{errors.message}</span>}
-      </div>
-
-      {/* Submit */}
-      <button className="ct-submit" type="submit" disabled={sending}>
-        {sending ? <><span className="ct-loader"/>Sending...</> : (
-          <>Send Message · إرسال الرسالة</>
-        )}
-      </button>
-    </form>
-  );
-}
-
-/* ── Main Component ──────────────────────────────────────────────────────── */
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function ContactSection() {
-  const cssInj = useRef(false);
-  const [hRef, hVis] = useReveal();
-  const [lRef, lVis] = useReveal(0.08);
-  const [rRef, rVis] = useReveal(0.08);
-  const [sRef, sVis] = useReveal(0.1);
+  const ref = useRef(false);
+  const [pinPulse, setPinPulse]         = useState(false);
+  const [activeOffice, setActiveOffice] = useState(0);
+  const [lang, setLang]                 = useState("en");
 
-  useEffect(() => {
-    if (cssInj.current) return;
-    const t = document.createElement("style");
-    t.textContent = CSS;
-    document.head.appendChild(t);
-    cssInj.current = true;
-  }, []);
+  useEffect(() => { if (ref.current) return; ref.current = true; injectCSS(CSS); }, []);
+  useEffect(() => { const t = setTimeout(() => setPinPulse(true), 800); return () => clearTimeout(t); }, []);
 
-  /* Google Maps embed — Amber Gem Tower, Ajman */
-  const mapSrc = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3606.9!2d55.4373!3d25.4078!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f5679b79cbc61%3A0x76d61b4adb0dae78!2sAmber%20Gem%20Tower%2C%20Ajman!5e0!3m2!1sen!2sae!4v1710000000000!5m2!1sen!2sae`;
+  const t      = T[lang];
+  const isAr   = lang === "ar";
+  const office = t.offices[activeOffice];
+
+  const switchOffice = (i) => {
+    setActiveOffice(i);
+    setPinPulse(false);
+    setTimeout(() => setPinPulse(true), 200);
+  };
 
   return (
-    <section id="contact" className="ct-page">
-      {/* Background decorations */}
-      <div className="ct-grid" />
-      <div className="ct-scan-line" />
+    <section id="contact" className="cs-root" dir={isAr ? "rtl" : "ltr"}>
+      <div className="cs-bg-gradient" />
+      <div className="cs-bg-grid" />
+      <div className="cs-glow cs-glow-1" />
+      <div className="cs-glow cs-glow-2" />
+      <div className="cs-glow cs-glow-3" />
 
-      {/* Ambient orbs */}
-      <div className="ct-orb" style={{top:"8%",left:"3%",width:440,height:440,background:"radial-gradient(circle,rgba(212,175,55,.07) 0%,transparent 70%)",animation:"ct-float 12s ease-in-out infinite"}}/>
-      <div className="ct-orb" style={{bottom:"15%",right:"4%",width:520,height:420,background:"radial-gradient(circle,rgba(0,174,239,.055) 0%,transparent 70%)",animation:"ct-float 15s 4s ease-in-out infinite"}}/>
-      <div className="ct-orb" style={{top:"50%",left:"50%",width:380,height:380,marginLeft:-190,marginTop:-190,background:"radial-gradient(circle,rgba(212,175,55,.04) 0%,transparent 70%)",animation:"ct-float 9s 2s ease-in-out infinite"}}/>
-
-      {/* Floating particles */}
-      {PARTICLES.map(p => (
-        <div key={p.id} style={{
-          position:"absolute",left:`${p.x}%`,top:`${p.y}%`,
-          width:p.s,height:p.s,borderRadius:"50%",
-          background:p.gold?"#D4AF37":"#38C8FF",
-          opacity:p.s>2?0.32:0.18,zIndex:1,pointerEvents:"none",
-          animation:`ct-float ${p.dur}s ${p.del}s ease-in-out infinite`,
-        }}/>
-      ))}
+      {/* ── Language Toggle ── */}
+      <div className="cs-lang-toggle">
+        <button className={`cs-lang-btn${!isAr ? " cs-lang-active" : ""}`} onClick={() => setLang("en")}>EN</button>
+        <button className={`cs-lang-btn${ isAr ? " cs-lang-active" : ""}`} onClick={() => setLang("ar")}>عربي</button>
+      </div>
 
       {/* ── Header ── */}
-      <div className={`ct-header ct-reveal${hVis?" on":""}`} ref={hRef}>
-        <div className="ct-eyebrow">
-          <span className="ct-eyebrow-dot"/>
-          BlueWave Consultation · تواصل معنا
-          <span className="ct-eyebrow-dot" style={{animationDelay:".8s"}}/>
-        </div>
-        <h2 className="ct-h1">
-          Get In <span className="gold">Touch</span>
+      <div className="cs-header">
+        <div className="cs-eyebrow"><span className="cs-dot" />{t.eyebrow}</div>
+        <h2 className="cs-h2">
+          {t.h2a}<br /><span className="cs-h2-accent">{t.h2b}</span>
         </h2>
-        <div className="ct-divider"/>
-        <div className="ct-h2">تواصل معنا — نحن هنا لمساعدتك</div>
-        <p className="ct-sub">
-          Ready to start your Dubai journey? Our expert consultants are available
-          6 days a week to guide you through every step of your immigration process.
-        </p>
-        <p className="ct-sub-ar">
-          مستعد لبدء رحلتك نحو دبي؟ مستشارونا الخبراء متاحون ٦ أيام في الأسبوع لإرشادك في كل خطوة.
-        </p>
+        <p className="cs-sub">{t.sub}</p>
       </div>
 
-      {/* ── Main Grid ── */}
-      <div className="ct-main">
-
-        {/* ── LEFT: Info Cards ── */}
-        <div className={`ct-left ct-reveal${lVis?" on":""}`} ref={lRef}>
-
-          {/* Contact detail cards */}
-          {CONTACT_DETAILS.map((d, i) => (
-            <div
-              key={i}
-              className={`ct-info-card${d.action ? " clickable" : ""}`}
-              style={{ "--cc": d.color, animationDelay: `${i*0.08}s` }}
-              onClick={() => d.action && window.open(d.action, "_blank")}
-            >
-              <div className="ct-info-row">
-                <div className="ct-info-icon" style={{ animationDelay: `${i*0.5}s` }}>{d.icon}</div>
-                <div style={{flex:1}}>
-                  <div className="ct-info-label">{d.labelEn}</div>
-                  <div className="ct-info-label-ar">{d.labelAr}</div>
-                  {d.lineEn.map((line, j) => (
-                    <div key={j}>
-                      <div className="ct-info-line">{line}</div>
-                      <div className="ct-info-line-ar">{d.lineAr[j]}</div>
-                    </div>
-                  ))}
-                </div>
-                {d.action && <div className="ct-info-arrow">→</div>}
-              </div>
-              {/* Office badge for address card */}
-              {i === 0 && (
-                <div className="ct-office-tag">
-                  🏢 Office No. CWS-1V-224954 · Amber Gem Tower
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* Hours card */}
-          <div className="ct-hours-card">
-            <div className="ct-hours-label">Office Hours</div>
-            <div className="ct-hours-label-ar">ساعات العمل</div>
-            {HOURS.map((h, i) => (
-              <div className="ct-hours-row" key={i}>
-                <div>
-                  <div className="ct-hours-day">{h.day}</div>
-                  <div className="ct-hours-day-ar">{h.dayAr}</div>
-                </div>
-                <div style={{textAlign:"right"}}>
-                  <div className={`ct-hours-time${h.open?" open":" closed"}`}>{h.time}</div>
-                  <div className="ct-hours-time-ar">{h.timeAr}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── RIGHT: Map + Form ── */}
-        <div className={`ct-right ct-reveal${rVis?" on":""}`} ref={rRef} style={{transitionDelay:".15s"}}>
-
-          {/* Live Google Map */}
-          <div className="ct-map-wrap">
-            <iframe
-              className="ct-map-iframe"
-              src={mapSrc}
-              title="BlueWave Consultation — Amber Gem Tower, Ajman, UAE"
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-            {/* Map overlay badge */}
-            <div className="ct-map-badge">
-              <div className="ct-map-badge-title">📍 Amber Gem Tower · برج امبرجم</div>
-              <div className="ct-map-badge-sub">26th Floor · Sheikh Khalifa Street, Ajman, UAE</div>
-              <div className="ct-map-badge-ar">الطابق ٢٦ · شارع الشيخ خليفة، عجمان، الإمارات</div>
-            </div>
-            {/* Open in Google Maps button */}
-            <a
-              className="ct-map-open-btn"
-              href="https://maps.google.com/?q=Amber+Gem+Tower+Ajman+UAE"
-              target="_blank"
+      {/* ── Quick-contact chips ── */}
+      <div className="cs-chips-wrap">
+        {t.chips.map((q, i) => {
+          const Icon = CHIP_ICONS[i];
+          return (
+            <a key={i} href={CHIP_HREFS[i]}
+              target={CHIP_HREFS[i].startsWith("http") ? "_blank" : "_self"}
               rel="noopener noreferrer"
-            >
-              Open Maps ↗
+              className="cs-chip" style={{ "--cc": CHIP_COLORS[i] }}>
+              <div className="cs-chip-icon"><Icon size={20} color={CHIP_COLORS[i]} /></div>
+              <div>
+                <div className="cs-chip-label">{q.label}</div>
+                <div className="cs-chip-sub">{q.sub}</div>
+              </div>
+              <svg className="cs-chip-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke={CHIP_COLORS[i]} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 17L17 7M7 7h10v10" />
+              </svg>
             </a>
-          </div>
-
-          {/* Contact Form */}
-          <div className="ct-form-card">
-            <div className="ct-form-title">Send Us a Message</div>
-            <div className="ct-form-title-ar">أرسل لنا رسالة</div>
-            <ContactForm />
-          </div>
-        </div>
+          );
+        })}
       </div>
 
-      {/* ── Quick Contact Chips ── */}
-      <div className={`ct-social-strip ct-reveal${sVis?" on":""}`} ref={sRef}>
-        {[
-          { icon:"💬", en:"WhatsApp Us",     ar:"واتساب",     action:"https://wa.me/971XXXXXXXXX",           color:"#81C784" },
-          { icon:"📞", en:"Call Us",          ar:"اتصل بنا",   action:"tel:+971XXXXXXXXX",                    color:"#4FC3F7" },
-          { icon:"📧", en:"Email Us",         ar:"راسلنا",     action:"mailto:info@bluewaveconsultation.ae",  color:"#CE93D8" },
-          { icon:"📍", en:"Get Directions",   ar:"الاتجاهات",  action:"https://maps.google.com/?q=Amber+Gem+Tower+Ajman+UAE", color:"#D4AF37" },
-        ].map((s,i)=>(
-          <a key={i} className="ct-social-chip" href={s.action}
-            target={s.action.startsWith("http")?"_blank":"_self"}
-            rel="noopener noreferrer"
-            style={{"--scc":s.color}}>
-            <span className="ct-social-icon">{s.icon}</span>
-            <div>
-              <div className="ct-social-en">{s.en}</div>
-              <div className="ct-social-ar">{s.ar}</div>
-            </div>
-          </a>
+      {/* ── Office Tabs ── */}
+      <div className="cs-office-tabs">
+        {t.offices.map((o, i) => (
+          <button key={i}
+            className={`cs-office-tab${activeOffice === i ? " cs-tab-active" : ""}`}
+            onClick={() => switchOffice(i)}>
+            <span className="cs-tab-flag">{o.flag}</span>
+            <span>{o.city}</span>
+            {activeOffice === i && <span className="cs-tab-dot" />}
+          </button>
         ))}
       </div>
 
-      {/* Gold bottom bar */}
-      <div className="ct-bottom-bar"/>
+      {/* ── Main grid ── */}
+      <div className="cs-bottom-grid">
+
+        {/* Map */}
+        <div className="cs-map-col">
+          <div className="cs-map-wrap">
+            <div className="cs-map-rule" />
+            <iframe key={`${activeOffice}-${lang}`}
+              className="cs-map-frame"
+              src={office.mapEmbed}
+              title={`BlueWave ${office.city}`}
+              allowFullScreen="" loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade" />
+            <div className={`cs-pin-wrap${pinPulse ? " cs-pin-active" : ""}`}>
+              <div className="cs-pin-ring cs-ring-1" />
+              <div className="cs-pin-ring cs-ring-2" />
+              <div className="cs-pin-dot"><PinIcon size={18} color="#fff" /></div>
+            </div>
+            <div className="cs-map-badge">
+              <div className="cs-map-badge-name">{office.badgeName}</div>
+              <div className="cs-map-badge-addr">{office.badgeAddr}</div>
+            </div>
+            <a href={office.mapsLink} target="_blank" rel="noopener noreferrer" className="cs-map-open">
+              {t.openMaps}
+            </a>
+          </div>
+        </div>
+
+        {/* Address panel */}
+        <div className="cs-addr-col">
+
+          {/* Office address */}
+          <div className="cs-addr-block">
+            <div className="cs-addr-icon-row">
+              <div className="cs-addr-icon-wrap"><PinIcon size={18} color="#D4AF37" /></div>
+              <span className="cs-addr-title">{t.officeAddress}</span>
+            </div>
+            <div className="cs-addr-lines">
+              <div className="cs-addr-office-tag">{office.tag}</div>
+              {office.lines.map((l, i) => <div key={i} className="cs-addr-line">{l}</div>)}
+            </div>
+          </div>
+
+          <div className="cs-addr-divider" />
+
+          {/* Working hours */}
+          <div className="cs-hours-block">
+            <div className="cs-addr-icon-row">
+              <div className="cs-addr-icon-wrap"><ClockIcon size={18} color="#D4AF37" /></div>
+              <span className="cs-addr-title">{t.workingHours}</span>
+            </div>
+            <div className="cs-hours-list">
+              <div className="cs-hours-row">
+                <span className="cs-hours-day">{t.satThu}</span>
+                <span className="cs-hours-time cs-open">{t.hours}</span>
+              </div>
+              <div className="cs-hours-row">
+                <span className="cs-hours-day">{t.friday}</span>
+                <span className="cs-hours-time cs-closed">{t.closed}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="cs-addr-divider" />
+
+          {/* Action buttons */}
+          <div className="cs-action-btns">
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="cs-btn-primary">
+              <WAIcon size={17} color="#080D1A" />{t.whatsapp}
+            </a>
+            <a href={PHONE_LINK} className="cs-btn-secondary">
+              <PhoneIcon size={17} color="#D4AF37" />{PHONE}
+            </a>
+          </div>
+
+          {/* Trust stats */}
+          <div className="cs-trust-row">
+            {t.trust.map(({ num, lbl }, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <div className="cs-trust-sep" />}
+                <div className="cs-trust-item">
+                  <span className="cs-trust-num">{num}</span>
+                  <span className="cs-trust-lbl">{lbl}</span>
+                </div>
+              </React.Fragment>
+            ))}
+          </div>
+
+        </div>
+      </div>
+      <div className="cs-bottom-bar" />
     </section>
   );
 }
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500&family=Tajawal:wght@300;400;500;700;800&display=swap');
+
+.cs-root { position:relative; font-family:'Poppins',sans-serif; overflow:hidden; }
+.cs-root[dir="rtl"] { font-family:'Tajawal',sans-serif; }
+
+.cs-bg-gradient { position:absolute; inset:0; z-index:0; background:linear-gradient(145deg,#0A0E1A 0%,#0D1628 25%,#101D35 50%,#0C1628 75%,#080D1A 100%); }
+.cs-bg-grid { position:absolute; inset:0; z-index:0; pointer-events:none; background-image:linear-gradient(rgba(212,175,55,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,.04) 1px,transparent 1px); background-size:60px 60px; }
+.cs-glow { position:absolute; border-radius:50%; pointer-events:none; z-index:0; filter:blur(90px); }
+.cs-glow-1 { width:500px; height:500px; top:-100px; right:-100px; background:radial-gradient(circle,rgba(212,175,55,.10) 0%,transparent 70%); animation:csGlow 20s ease-in-out infinite; }
+.cs-glow-2 { width:400px; height:400px; bottom:0; left:-80px; background:radial-gradient(circle,rgba(59,130,246,.08) 0%,transparent 70%); animation:csGlow 26s ease-in-out infinite reverse; }
+.cs-glow-3 { width:300px; height:300px; top:40%; left:40%; background:radial-gradient(circle,rgba(220,38,38,.06) 0%,transparent 70%); animation:csGlow 18s 3s ease-in-out infinite; }
+@keyframes csGlow { 0%,100%{transform:scale(1) translate(0,0)} 50%{transform:scale(1.1) translate(-12px,-18px)} }
+
+/* Lang toggle */
+.cs-lang-toggle { position:absolute; top:24px; right:24px; z-index:10; display:flex; gap:4px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:4px; }
+[dir="rtl"] .cs-lang-toggle { right:auto; left:24px; }
+.cs-lang-btn { font-family:'Montserrat',sans-serif; font-size:.68rem; font-weight:700; letter-spacing:.08em; color:#64748B; background:transparent; border:none; border-radius:5px; padding:6px 14px; cursor:pointer; transition:all .2s; }
+.cs-lang-active { color:#080D1A !important; background:linear-gradient(135deg,#D4AF37,#F5D76E) !important; }
+
+/* Header */
+.cs-header { position:relative; z-index:2; text-align:center; padding:96px 24px 40px; animation:csFadeUp .8s cubic-bezier(.16,1,.3,1) both; }
+@keyframes csFadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+.cs-eyebrow { display:inline-flex; align-items:center; gap:10px; font-family:'Montserrat',sans-serif; font-size:.62rem; font-weight:700; letter-spacing:.3em; text-transform:uppercase; color:#D4AF37; background:rgba(212,175,55,.08); border:1px solid rgba(212,175,55,.2); padding:7px 20px; border-radius:2px; margin-bottom:22px; }
+[dir="rtl"] .cs-eyebrow { font-family:'Tajawal',sans-serif; letter-spacing:.05em; font-size:.9rem; text-transform:none; }
+.cs-dot { width:6px; height:6px; border-radius:50%; background:#D4AF37; animation:csDot 2s ease-in-out infinite; }
+@keyframes csDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.55)} }
+.cs-h2 { font-family:'Merriweather',serif; font-size:clamp(2.2rem,4.8vw,3.8rem); font-weight:900; line-height:1.15; color:#fff; letter-spacing:-.02em; margin:0 0 16px; }
+[dir="rtl"] .cs-h2 { font-family:'Tajawal',sans-serif; font-weight:800; letter-spacing:0; }
+.cs-h2-accent { background:linear-gradient(135deg,#A17C1A,#D4AF37,#F5D76E); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; background-size:200%; animation:csShimmer 4s linear infinite; }
+@keyframes csShimmer { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+.cs-sub { font-size:1rem; font-weight:300; color:#94A3B8; max-width:520px; margin:0 auto; line-height:1.85; }
+[dir="rtl"] .cs-sub { font-size:1.05rem; }
+
+/* Chips */
+.cs-chips-wrap { position:relative; z-index:2; max-width:1200px; margin:0 auto 24px; padding:0 24px; display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+@media(max-width:900px){ .cs-chips-wrap{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:520px){ .cs-chips-wrap{grid-template-columns:1fr} }
+.cs-chip { display:flex; align-items:center; gap:14px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:16px 18px; text-decoration:none; transition:transform .28s cubic-bezier(.34,1.56,.64,1),background .25s,border-color .25s,box-shadow .28s; position:relative; overflow:hidden; }
+.cs-chip::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--cc); transform:scaleX(0); transform-origin:left; transition:transform .3s cubic-bezier(.16,1,.3,1); }
+[dir="rtl"] .cs-chip::before { transform-origin:right; }
+.cs-chip:hover::before { transform:scaleX(1); }
+.cs-chip:hover { transform:translateY(-5px); background:rgba(255,255,255,.07); border-color:color-mix(in srgb,var(--cc) 40%,transparent); box-shadow:0 16px 40px rgba(0,0,0,.4),0 0 28px color-mix(in srgb,var(--cc) 15%,transparent); }
+.cs-chip-icon { width:44px; height:44px; border-radius:10px; flex-shrink:0; background:color-mix(in srgb,var(--cc) 12%,transparent); border:1px solid color-mix(in srgb,var(--cc) 25%,transparent); display:flex; align-items:center; justify-content:center; transition:transform .28s; }
+.cs-chip:hover .cs-chip-icon { transform:scale(1.08) rotate(-4deg); }
+.cs-chip-label { font-family:'Montserrat',sans-serif; font-size:.82rem; font-weight:700; color:#fff; margin-bottom:2px; }
+[dir="rtl"] .cs-chip-label { font-family:'Tajawal',sans-serif; font-size:1rem; }
+.cs-chip-sub { font-size:.72rem; font-weight:300; color:#64748B; word-break:break-all; }
+[dir="rtl"] .cs-chip-sub { font-size:.82rem; }
+.cs-chip-arrow { margin-left:auto; flex-shrink:0; opacity:.5; transition:opacity .2s,transform .2s; }
+[dir="rtl"] .cs-chip-arrow { margin-left:0; margin-right:auto; transform:scaleX(-1); }
+.cs-chip:hover .cs-chip-arrow { opacity:1; transform:translate(2px,-2px); }
+[dir="rtl"] .cs-chip:hover .cs-chip-arrow { transform:scaleX(-1) translate(-2px,-2px); }
+
+/* Office tabs */
+.cs-office-tabs { position:relative; z-index:2; max-width:1200px; margin:0 auto 20px; padding:0 24px; display:flex; gap:10px; }
+.cs-office-tab { display:inline-flex; align-items:center; gap:8px; font-family:'Montserrat',sans-serif; font-size:.78rem; font-weight:700; letter-spacing:.08em; color:#64748B; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:10px 20px; cursor:pointer; transition:all .25s; }
+[dir="rtl"] .cs-office-tab { font-family:'Tajawal',sans-serif; font-size:.95rem; letter-spacing:.02em; }
+.cs-office-tab:hover { color:#fff; background:rgba(255,255,255,.08); }
+.cs-tab-active { color:#D4AF37!important; background:rgba(212,175,55,.1)!important; border-color:rgba(212,175,55,.35)!important; }
+.cs-tab-flag { font-size:1rem; }
+.cs-tab-dot { width:6px; height:6px; border-radius:50%; background:#D4AF37; animation:csDot 2s ease-in-out infinite; margin-left:2px; }
+[dir="rtl"] .cs-tab-dot { margin-left:0; margin-right:2px; }
+
+/* Grid */
+.cs-bottom-grid { position:relative; z-index:2; max-width:1200px; margin:0 auto; padding:0 24px 80px; display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
+@media(max-width:960px){ .cs-bottom-grid{grid-template-columns:1fr} }
+
+/* Map */
+.cs-map-wrap { position:relative; border-radius:18px; overflow:hidden; border:1px solid rgba(212,175,55,.22); box-shadow:0 24px 70px rgba(0,0,0,.55); height:420px; }
+.cs-map-rule { position:absolute; top:0; left:0; right:0; height:3px; z-index:3; background:linear-gradient(90deg,transparent,#D4AF37,#F5D76E,#D4AF37,transparent); background-size:400px; animation:csShimmer 3s linear infinite; }
+.cs-map-frame { width:100%; height:100%; border:none; display:block; filter:saturate(.6) brightness(.78) contrast(1.15); transition:filter .5s ease; }
+.cs-map-wrap:hover .cs-map-frame { filter:saturate(.85) brightness(.9) contrast(1.05); }
+.cs-pin-wrap { position:absolute; top:42%; left:50%; z-index:4; transform:translate(-50%,-50%); }
+.cs-pin-ring { position:absolute; top:50%; left:50%; border-radius:50%; border:2px solid rgba(212,175,55,.5); transform:translate(-50%,-50%) scale(0); opacity:0; pointer-events:none; }
+.cs-ring-1 { width:48px; height:48px; }
+.cs-ring-2 { width:72px; height:72px; border-color:rgba(212,175,55,.28); }
+.cs-pin-active .cs-ring-1 { animation:csPinRing 2.4s .2s ease-out infinite; }
+.cs-pin-active .cs-ring-2 { animation:csPinRing 2.4s .6s ease-out infinite; }
+@keyframes csPinRing { 0%{transform:translate(-50%,-50%) scale(.5);opacity:.8} 100%{transform:translate(-50%,-50%) scale(1.6);opacity:0} }
+.cs-pin-dot { width:40px; height:40px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); background:linear-gradient(135deg,#D4AF37,#F5D76E); box-shadow:0 4px 20px rgba(212,175,55,.6); display:flex; align-items:center; justify-content:center; animation:csPinBob 2.8s ease-in-out infinite; position:relative; z-index:2; }
+.cs-pin-dot svg { transform:rotate(45deg); }
+@keyframes csPinBob { 0%,100%{transform:rotate(-45deg) translateY(0)} 50%{transform:rotate(-45deg) translateY(-5px)} }
+.cs-map-badge { position:absolute; bottom:56px; left:50%; transform:translateX(-50%); z-index:3; white-space:nowrap; text-align:center; background:rgba(8,13,26,.92); border:1px solid rgba(212,175,55,.32); border-radius:12px; padding:10px 20px; backdrop-filter:blur(14px); }
+.cs-map-badge-name { font-family:'Montserrat',sans-serif; font-size:.82rem; font-weight:700; color:#D4AF37; }
+[dir="rtl"] .cs-map-badge-name { font-family:'Tajawal',sans-serif; font-size:.95rem; }
+.cs-map-badge-addr { font-size:.66rem; font-weight:300; color:rgba(255,255,255,.55); margin-top:3px; }
+[dir="rtl"] .cs-map-badge-addr { font-size:.8rem; }
+.cs-map-open { position:absolute; top:14px; right:14px; z-index:3; background:rgba(8,13,26,.88); border:1px solid rgba(212,175,55,.32); border-radius:8px; padding:8px 14px; font-family:'Montserrat',sans-serif; font-size:.6rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#D4AF37; text-decoration:none; backdrop-filter:blur(12px); transition:background .2s,border-color .2s; }
+[dir="rtl"] .cs-map-open { right:auto; left:14px; font-family:'Tajawal',sans-serif; letter-spacing:.02em; font-size:.82rem; text-transform:none; }
+.cs-map-open:hover { background:rgba(212,175,55,.14); border-color:rgba(212,175,55,.65); }
+
+/* Address panel */
+.cs-addr-col { display:flex; flex-direction:column; gap:0; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:32px 28px; position:relative; overflow:hidden; }
+.cs-addr-col::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,transparent,#D4AF37,#F5D76E,#D4AF37,transparent); background-size:400px; animation:csShimmer 3s linear infinite; }
+.cs-addr-icon-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.cs-addr-icon-wrap { width:40px; height:40px; border-radius:10px; background:rgba(212,175,55,.1); border:1px solid rgba(212,175,55,.22); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.cs-addr-title { font-family:'Montserrat',sans-serif; font-size:.62rem; font-weight:800; letter-spacing:.24em; text-transform:uppercase; color:#D4AF37; }
+[dir="rtl"] .cs-addr-title { font-family:'Tajawal',sans-serif; font-size:.92rem; letter-spacing:.04em; text-transform:none; }
+.cs-addr-lines { padding-left:52px; }
+[dir="rtl"] .cs-addr-lines { padding-left:0; padding-right:52px; }
+.cs-addr-office-tag { display:inline-block; font-family:'Montserrat',sans-serif; font-size:.68rem; font-weight:700; color:#F5D76E; background:rgba(212,175,55,.1); border:1px solid rgba(212,175,55,.22); border-radius:5px; padding:4px 10px; margin-bottom:8px; letter-spacing:.08em; }
+[dir="rtl"] .cs-addr-office-tag { font-family:'Tajawal',sans-serif; font-size:.85rem; letter-spacing:.02em; }
+.cs-addr-line { font-size:.88rem; font-weight:300; color:#CBD5E1; line-height:1.75; }
+[dir="rtl"] .cs-addr-line { font-size:.98rem; }
+.cs-addr-divider { height:1px; background:rgba(255,255,255,.07); margin:22px 0; }
+
+/* Hours */
+.cs-hours-list { padding-left:52px; display:flex; flex-direction:column; gap:10px; }
+[dir="rtl"] .cs-hours-list { padding-left:0; padding-right:52px; }
+.cs-hours-row { display:flex; justify-content:space-between; align-items:center; }
+.cs-hours-day { font-size:.82rem; font-weight:300; color:#94A3B8; }
+[dir="rtl"] .cs-hours-day { font-size:.95rem; }
+.cs-hours-time { font-family:'Montserrat',sans-serif; font-size:.8rem; font-weight:700; }
+[dir="rtl"] .cs-hours-time { font-family:'Tajawal',sans-serif; font-size:.95rem; }
+.cs-open  { color:#4ADE80; }
+.cs-closed{ color:#F87171; }
+
+/* Buttons */
+.cs-action-btns { display:flex; flex-direction:column; gap:12px; margin-top:2px; }
+.cs-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:10px; font-family:'Montserrat',sans-serif; font-size:.78rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#080D1A; background:linear-gradient(135deg,#F5D76E,#D4AF37,#B8921E); border:none; border-radius:10px; padding:15px 24px; text-decoration:none; position:relative; overflow:hidden; transition:transform .28s,box-shadow .3s; }
+[dir="rtl"] .cs-btn-primary { font-family:'Tajawal',sans-serif; font-size:1rem; letter-spacing:.02em; text-transform:none; }
+.cs-btn-primary::before { content:''; position:absolute; inset:0; background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.28) 50%,transparent 70%); transform:translateX(-100%); transition:transform .5s; }
+.cs-btn-primary:hover::before { transform:translateX(100%); }
+.cs-btn-primary:hover { transform:translateY(-3px); box-shadow:0 16px 44px rgba(212,175,55,.45); }
+.cs-btn-secondary { display:inline-flex; align-items:center; justify-content:center; gap:10px; font-family:'Montserrat',sans-serif; font-size:.78rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#D4AF37; background:rgba(212,175,55,.08); border:1px solid rgba(212,175,55,.28); border-radius:10px; padding:14px 24px; text-decoration:none; transition:transform .25s,background .25s,box-shadow .25s; }
+[dir="rtl"] .cs-btn-secondary { font-family:'Tajawal',sans-serif; font-size:1rem; letter-spacing:.02em; text-transform:none; }
+.cs-btn-secondary:hover { transform:translateY(-2px); background:rgba(212,175,55,.14); box-shadow:0 8px 28px rgba(212,175,55,.18); }
+
+/* Trust stats */
+.cs-trust-row { display:flex; align-items:center; justify-content:center; gap:0; margin-top:24px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:16px 20px; }
+.cs-trust-item { display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; }
+.cs-trust-num { font-family:'Merriweather',serif; font-size:1.5rem; font-weight:900; color:#D4AF37; line-height:1; letter-spacing:-.02em; }
+.cs-trust-lbl { font-size:.65rem; font-weight:300; color:#64748B; letter-spacing:.06em; }
+[dir="rtl"] .cs-trust-lbl { font-family:'Tajawal',sans-serif; font-size:.85rem; letter-spacing:.01em; }
+.cs-trust-sep { width:1px; height:36px; background:rgba(255,255,255,.08); flex-shrink:0; }
+
+/* Bottom bar */
+.cs-bottom-bar { height:3px; background:linear-gradient(90deg,transparent,#A17C1A 20%,#D4AF37 40%,#F5D76E 50%,#D4AF37 60%,#A17C1A 80%,transparent); background-size:700px; animation:csShimmer 3.5s linear infinite; }
+
+/* Mobile */
+@media(max-width:640px){
+  .cs-header{padding:72px 18px 40px}
+  .cs-bottom-grid{padding:0 16px 60px}
+  .cs-addr-col{padding:24px 18px}
+  .cs-map-wrap{height:300px}
+  .cs-lang-toggle{top:16px;right:16px}
+  [dir="rtl"] .cs-lang-toggle{right:auto;left:16px}
+  .cs-map-badge{white-space:normal;width:80%;text-align:center}
+}
+`;

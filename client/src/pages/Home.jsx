@@ -2,8 +2,13 @@
 import React from 'react';
 import HeroSection from '../components/home/HeroSection'; // import HeroSection
 import ServicesSection from './Servicessection';
+
 import Contactsection from "./Contactsection";
-import WhyChooseUs from "./WhyChooseUs"
+import AboutPage from './AboutPage';
+import CountriesSection from './Countriessection';
+import Faq from "./Faq"
+
+
 
 
 export default function Home() {
@@ -11,7 +16,11 @@ export default function Home() {
     <div>
       <HeroSection /> {/* Hero Section displayed here */}
       <ServicesSection/>
-      <WhyChooseUs/>
+      <CountriesSection/>
+      <AboutPage/>
+      <Faq/>
+      
+
           
 
       <Contactsection/>

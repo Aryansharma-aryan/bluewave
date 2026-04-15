@@ -17,7 +17,7 @@ const buildConsultationHtml = (consult) => `
       
       <!-- Personalized Greeting Header -->
       <div style="background-color:#4a90e2; color:#ffffff; padding:20px; text-align:center;">
-        <h2 style="margin:0; font-size:20px;">Hello Rosy Mam,</h2>
+        <h2 style="margin:0; font-size:20px;">Hello ,</h2>
         <p style="margin:5px 0 0; font-size:16px;">Here is your new consultation request</p>
       </div>
       

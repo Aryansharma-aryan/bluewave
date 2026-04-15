@@ -15,6 +15,7 @@ export default function Navbar() {
   const location  = useLocation();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem("adminToken")));
 
   const active = location.pathname;
   const isActive = (path) => path === "/" ? active === "/" : active.startsWith(path);
@@ -38,7 +39,30 @@ export default function Navbar() {
     return () => window.removeEventListener("resize", fn);
   }, []);
 
+  useEffect(() => {
+    const syncAuthState = () => setIsLoggedIn(Boolean(localStorage.getItem("adminToken")));
+
+    syncAuthState();
+    window.addEventListener("storage", syncAuthState);
+    window.addEventListener("focus", syncAuthState);
+
+    return () => {
+      window.removeEventListener("storage", syncAuthState);
+      window.removeEventListener("focus", syncAuthState);
+    };
+  }, []);
+
+  useEffect(() => {
+    setIsLoggedIn(Boolean(localStorage.getItem("adminToken")));
+  }, [location.pathname]);
+
   const goTo = (path) => { setOpen(false); navigate(path); };
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    setIsLoggedIn(false);
+    setOpen(false);
+    navigate("/login");
+  };
 
   return (
     <>
@@ -87,6 +111,21 @@ export default function Navbar() {
             <button className="nb-cta" onClick={() => goTo("/contact")}>
               Free Consultation
             </button>
+
+            {isLoggedIn ? (
+              <>
+                <button className="nb-auth-btn" onClick={() => goTo("/admin")}>
+                  Admin Panel
+                </button>
+                <button className="nb-auth-btn nb-logout" onClick={handleLogout}>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <button className="nb-auth-btn" onClick={() => goTo("/login")}>
+                Login
+              </button>
+            )}
 
             {/* HAMBURGER */}
             <button
@@ -139,6 +178,36 @@ export default function Navbar() {
               </svg>
             </button>
           ))}
+
+          {isLoggedIn ? (
+            <>
+              <button
+                className={`nb-drawer-link${isActive("/admin") ? " nb-drawer-active" : ""}`}
+                onClick={() => goTo("/admin")}
+              >
+                Admin Panel
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </button>
+              <button className="nb-drawer-link nb-drawer-logout" onClick={handleLogout}>
+                Logout
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </button>
+            </>
+          ) : (
+            <button
+              className={`nb-drawer-link${isActive("/login") ? " nb-drawer-active" : ""}`}
+              onClick={() => goTo("/login")}
+            >
+              Login
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
+          )}
         </nav>
 
         {/* Drawer footer */}
@@ -149,7 +218,7 @@ export default function Navbar() {
             </svg>
             +971 50 658 0557
           </a>
-          <button className="nb-drawer-cta" onClick={() => goTo("")}>
+          <button className="nb-drawer-cta" onClick={() => goTo("/consult")}>
             Book Free Consultation
           </button>
         </div>
@@ -351,6 +420,33 @@ const CSS = `
   }
   @media (max-width: 900px) { .nb-cta { display: none !important; } }
 
+  .nb-auth-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem; font-weight: 600;
+    color: #1f2937; background: transparent;
+    border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 10px 16px; cursor: pointer; white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
+  }
+  .nb-auth-btn:hover {
+    color: #2F4A8A;
+    border-color: #cfd8ea;
+    background: #f8fbff;
+    transform: translateY(-1px);
+  }
+  .nb-logout {
+    color: #fff;
+    background: #e53935;
+    border-color: #e53935;
+  }
+  .nb-logout:hover {
+    color: #fff;
+    background: #c62828;
+    border-color: #c62828;
+    box-shadow: 0 4px 16px rgba(229,57,53,0.35);
+  }
+  @media (max-width: 900px) { .nb-auth-btn { display: none !important; } }
+
   /* ── HAMBURGER ── */
   .nb-ham {
     display: none; flex-direction: column; justify-content: center;
@@ -430,6 +526,12 @@ const CSS = `
   .nb-drawer-link:hover { background: #fff5f5; color: #e53935; }
   .nb-drawer-link.nb-drawer-active {
     background: #fff5f5; color: #e53935; font-weight: 600;
+  }
+  .nb-drawer-link.nb-drawer-logout {
+    color: #e53935;
+  }
+  .nb-drawer-link.nb-drawer-logout svg {
+    color: #e53935;
   }
   .nb-drawer-link svg { color: #bbb; transition: color 0.2s; }
   .nb-drawer-link:hover svg,

@@ -14,6 +14,10 @@ import VisitorVisa from './components/services/visitorVisa';
 import Footer from './components/Footer';
 import Dependent from './components/services/dependent';
 import WorkVisa from './components/services/WorkVisa';
+import AdminPanel from "./Admin/AdminPanel";
+import ProtectedRoute from './pages/ProtectedRoute';
+import AdminLogin from './pages/adminLogin';
+
 
 
 
@@ -55,6 +59,15 @@ function App() {
         <Route path="/visitor-visa" element={<VisitorVisa />} />
         <Route path="/dependent" element={<Dependent />} />
         <Route path="/work" element={<WorkVisa />} />
+        <Route path="/login" element={<AdminLogin />} />
+         <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminPanel />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
       <Footer />
     </Router>

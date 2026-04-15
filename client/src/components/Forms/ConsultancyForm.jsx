@@ -1,135 +1,234 @@
-import { motion } from "framer-motion";
+import React, { useState } from 'react';
+import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import API_BASE_URL from '../../config/api';
 
-export default function ConsultationForm() {
+const ConsultancyForm = () => {
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    countryOfInterest: '',
+    visaType: '',
+    contactMethod: '',
+    preferredDate: '',
+    purpose: '',
+    message: '',
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const visaTypes = [
+    'Study Visa', 'Tourist Visa', 'Work Visa', 'PR / Immigration',
+    'Spouse Visa', 'Dependent Visa', 'Visitor Visa', 'Investor / Business Visa',
+    'Permanent Residency', 'Family Reunification', 'Open Work Permit',
+    'Express Entry', 'Super Visa', 'Citizenship Application', 'Other',
+  ];
+
+  const countries = [
+    'Canada', 'Australia', 'United Kingdom', 'United States',
+    'New Zealand', 'Germany', 'France', 'Italy', 'Sweden',
+    'Netherlands', 'Denmark', 'Ireland', 'Finland',
+    'Europe (Schengen)', 'Other',
+  ];
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const validateForm = () => {
+    const { fullName, email, phone, countryOfInterest, visaType, contactMethod } = formData;
+    if (!fullName || !email || !phone || !countryOfInterest || !visaType || !contactMethod) {
+      toast.error('❌ Please fill all required fields.');
+      return false;
+    }
+    const nameRegex = /^[A-Za-z\s.'-]+$/;
+    if (!nameRegex.test(fullName)) {
+      toast.error('❌ Full name contains invalid characters.');
+      return false;
+    }
+    const phoneRegex = /^\d{7,15}$/;
+    if (!phoneRegex.test(phone)) {
+      toast.error('❌ Phone number must be 7-15 digits.');
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('❌ Email is invalid.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/consult`,
+        formData,
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 15000, // 15 seconds max
+        }
+      );
+
+      toast.success(res.data?.message || '✅ Consultation submitted successfully!');
+
+      // Reset form after successful submission
+      setFormData({
+        fullName: '',
+        email: '',
+        phone: '',
+        countryOfInterest: '',
+        visaType: '',
+        contactMethod: '',
+        preferredDate: '',
+        purpose: '',
+        message: '',
+      });
+    } catch (error) {
+      console.error('Submission error:', error);
+      if (error.code === 'ECONNABORTED') {
+        toast.error('⚠️ Server took too long to respond. Please try again later.');
+      } else {
+        const backendMsg =
+          error.response?.data?.message ||
+          error.response?.data?.errors?.[0]?.msg ||
+          '❌ Something went wrong. Please try again.';
+        toast.error(backendMsg);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <section className="bg-gray-50 min-h-screen pt-28 pb-16 px-4">
-      
-      {/* Container */}
-      <div className="max-w-3xl mx-auto">
-        
-        {/* Heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8 text-center"
-        >
-         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight 
-bg-gradient-to-r from-blue-600 to-cyan-500 
-bg-clip-text text-transparent">
-  Book Your Consultation
-</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-100 flex items-center justify-center px-4 py-10">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <div className="w-full max-w-3xl p-8 sm:p-10 bg-white/60 backdrop-blur-md rounded-2xl shadow-2xl transition-all duration-300">
+        <h2 className="text-4xl font-extrabold text-center text-indigo-800 mb-6 animate-fade-in">
+          Book Your <span className="text-teal-600">Free Consultation</span>
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-6 animate-fade-up">
+          <input
+            type="text"
+            name="fullName"
+            placeholder="Full Name"
+            value={formData.fullName}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none transition"
+          />
 
-          <p className="mt-3 text-gray-500 text-sm md:text-base max-w-xl mx-auto">
-            Get expert guidance tailored to your visa journey. Our specialists will
-            review your profile and guide you with the best possible options.
-          </p>
-        </motion.div>
+          <div className="flex gap-4">
+            <input
+              type="email"
+              name="email"
+              placeholder="Email Address"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-1/2 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-400 transition"
+            />
+            <input
+              type="tel"
+              name="phone"
+              placeholder="Phone Number"
+              pattern="\d{7,15}"
+              title="Phone number must be 7-15 digits"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+              className="w-1/2 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-400 transition"
+            />
+          </div>
 
-        {/* Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 md:p-8"
-        >
-          
-          <form className="space-y-5">
+          <select
+            name="countryOfInterest"
+            value={formData.countryOfInterest}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-indigo-400"
+          >
+            <option value="">Select Country of Interest</option>
+            {countries.map((c, i) => (
+              <option key={i} value={c}>{c}</option>
+            ))}
+          </select>
 
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Full Name *
-              </label>
-              <input
-                type="text"
-                placeholder="Enter your full name"
-                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              />
-            </div>
+          <select
+            name="visaType"
+            value={formData.visaType}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-indigo-400"
+          >
+            <option value="">Select Visa Type</option>
+            {visaTypes.map((v, i) => (
+              <option key={i} value={v}>{v}</option>
+            ))}
+          </select>
 
-            {/* Email + Phone */}
-            <div className="grid md:grid-cols-2 gap-4">
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
+          <select
+            name="contactMethod"
+            value={formData.contactMethod}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-indigo-400"
+          >
+            <option value="">Preferred Contact Method</option>
+            <option value="Phone">Phone</option>
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="Email">Email</option>
+          </select>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Phone *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter your phone number"
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-            </div>
+        <input
+  type="date"
+  name="preferredDate"
+  value={formData.preferredDate}
+  onChange={handleChange}
+  min={new Date().toISOString().split("T")[0]} // Disable past dates
+  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-400 transition"
+/>
 
-            {/* Country */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Country *
-              </label>
-              <select className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
-                <option>Select country</option>
-                <option>India</option>
-                <option>Canada</option>
-                <option>Australia</option>
-                <option>UK</option>
-              </select>
-            </div>
 
-            {/* Visa Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Visa Type *
-              </label>
-              <select className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
-                <option>Select visa type</option>
-                <option>Study Visa</option>
-                <option>Work Visa</option>
-                <option>PR</option>
-                <option>Visitor Visa</option>
-              </select>
-            </div>
+          <input
+            type="text"
+            name="purpose"
+            placeholder="Purpose of Consultation"
+            maxLength="200"
+            value={formData.purpose}
+            onChange={handleChange}
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-400"
+          />
 
-            {/* Message */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Message
-              </label>
-              <textarea
-                rows="3"
-                placeholder="Tell us about your requirement..."
-                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-              ></textarea>
-            </div>
+          <textarea
+            name="message"
+            placeholder="Additional Message (Optional)"
+            maxLength="500"
+            value={formData.message}
+            onChange={handleChange}
+            rows="4"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-400"
+          />
 
-            {/* Button */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white font-medium py-3 rounded-lg 
-                hover:bg-blue-700 hover:shadow-lg hover:-translate-y-[1px] 
-                transition-all duration-300"
-              >
-                Submit Request
-              </button>
-            </div>
-
-          </form>
-        </motion.div>
-
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-3 text-white font-semibold bg-gradient-to-r from-indigo-500 to-teal-500 rounded-lg transition-all duration-300 ${
+              loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+            }`}
+          >
+            {loading ? 'Submitting...' : '🚀 Submit Request'}
+          </button>
+        </form>
       </div>
-    </section>
+    </div>
   );
-}
+};
+
+export default ConsultancyForm;

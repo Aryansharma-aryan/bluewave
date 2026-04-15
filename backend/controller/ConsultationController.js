@@ -111,21 +111,28 @@ const createConsultation = async (req, res) => {
   try {
     const newConsultation = await Consultation.create(req.body);
     console.log("Consultation saved:", newConsultation._id);
+try {
+  const emailResponse = await resend.emails.send({
+    from: "Resend <onboarding@bluewaveconsultation.com>",
+    to: ["info@bluewaveconsultation.com"],   // ✅ manually added admin email
+    subject: `📩 New Consultation from ${newConsultation.fullName}`,
+    
+    html: buildConsultationHtml(newConsultation),
 
-    try {
-      const emailResponse = await resend.emails.send({
-        from: "Resend <onboarding@bluewaveconsultation.com>",  // must be verified
-        to: [process.env.ADMIN_RECIPIENT],       // can be multiple emails
-        subject: `📩 New Consultation from ${newConsultation.fullName}`,
-        html: buildConsultationHtml(newConsultation),
-        reply_to: newConsultation.email,
-      });
+    text: `New consultation from ${newConsultation.fullName}
+Email: ${newConsultation.email}
+Phone: ${newConsultation.phone}
+Country: ${newConsultation.countryOfInterest}
+Visa Type: ${newConsultation.visaType}`,
 
-      console.log("Consultation email sent:", emailResponse?.data?.id || "ok");
+    reply_to: newConsultation.email || "info@bluewaveconsultation.com",
+  });
 
-    } catch (emailErr) {
-      console.error("Consultation email send error:", emailErr);
-    }
+  console.log("Consultation email sent:", emailResponse?.data?.id || "ok");
+
+} catch (error) {
+  console.error("Email failed ❌:", error);
+}
 
     res.status(201).json({
       success: true,

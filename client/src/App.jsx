@@ -12,6 +12,8 @@ import TouristVisa from './components/services/touristVisa';
 import Pte from './components/services/pte';
 import VisitorVisa from './components/services/visitorVisa';
 import Footer from './components/Footer';
+import Dependent from './components/services/dependent';
+
 
 
 
@@ -49,6 +51,7 @@ function App() {
         <Route path="/tourist" element={<TouristVisa />} />
         <Route path="/ielts-pte" element={<Pte />} />
         <Route path="/visitor-visa" element={<VisitorVisa />} />
+        <Route path="/dependent" element={<Dependent />} />
       </Routes>
       <Footer />
     </Router>

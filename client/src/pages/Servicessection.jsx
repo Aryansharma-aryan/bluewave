@@ -89,7 +89,7 @@ const SERVICES = [
   {
     title: "Dependent Visa",
     desc: "Western Overseas supports getting child and spouse visas to reunite all family members. A genuine relationship must be established to apply.",
-    img: dependentImg, path: "/services/dependent",
+    img: dependentImg, path: "/dependent",
     icon: (<svg viewBox="0 0 48 48" fill="none" width="26" height="26"><circle cx="17" cy="14" r="6" stroke="#fff" strokeWidth="2.4"/><circle cx="31" cy="14" r="6" stroke="#fff" strokeWidth="2.4"/><path d="M5 42c0-7.732 5.373-14 12-14h14c6.627 0 12 6.268 12 14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"/></svg>),
   },
   {

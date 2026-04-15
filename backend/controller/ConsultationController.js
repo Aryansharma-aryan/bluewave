@@ -35,10 +35,7 @@ const buildConsultationHtml = (consult) => `
         <tr><td style="font-weight:bold;">Submitted At:</td><td>${new Date(consult.createdAt).toLocaleString()}</td></tr>
       </table>
       
-      <!-- Footer -->
-      <div style="text-align:center; padding:15px; background-color:#f7f7f7; color:#777; font-size:12px;">
-        — CAIALS System
-      </div>
+     
       
     </div>
   </div>
@@ -117,7 +114,7 @@ const createConsultation = async (req, res) => {
 
     try {
       const emailResponse = await resend.emails.send({
-        from: "Resend <onboarding@resend.dev>",  // must be verified
+        from: "Resend <onboarding@bluewaveconsultation.com>",  // must be verified
         to: [process.env.ADMIN_RECIPIENT],       // can be multiple emails
         subject: `📩 New Consultation from ${newConsultation.fullName}`,
         html: buildConsultationHtml(newConsultation),

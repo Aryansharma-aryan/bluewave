@@ -95,7 +95,7 @@ const SERVICES = [
   {
     title: "Work Visa",
     desc: "Secure international job opportunities with expert work visa processing. We assist skilled professionals applying for permits across the UK, Canada, Australia, and Germany.",
-    img: workImg, path: "/services/work",
+    img: workImg, path: "/work",
     icon: (<svg viewBox="0 0 48 48" fill="none" width="26" height="26"><rect x="6" y="16" width="36" height="26" rx="3" stroke="#fff" strokeWidth="2.4"/><path d="M16 16V12a3 3 0 013-3h10a3 3 0 013 3v4" stroke="#fff" strokeWidth="2.4"/><path d="M6 28h36" stroke="#fff" strokeWidth="2.4"/></svg>),
   },
   {

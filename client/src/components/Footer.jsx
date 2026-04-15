@@ -139,12 +139,12 @@ export default function Footer() {
             <div className="mt-5">
               <ColTitle>Working Hours</ColTitle>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-[15px] text-slate-300">Saturday – Thursday</span>
+                <span className="text-[15px] text-slate-300">Monday – Saturday</span>
                 <span className="text-[14px] text-green-400 font-semibold">Open</span>
               </div>
               <p className="text-[13px] text-slate-500 mb-3">9:00 AM – 5:30 PM</p>
               <div className="flex justify-between items-center">
-                <span className="text-[15px] text-slate-300">Friday</span>
+                <span className="text-[15px] text-slate-300">Sunday</span>
                 <span className="text-[14px] text-red-400 font-semibold">Closed</span>
               </div>
             </div>

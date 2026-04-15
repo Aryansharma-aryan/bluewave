@@ -627,40 +627,6 @@ export default function VisitorVisa() {
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section style={{ background: "#ffffff", padding: "0 24px 100px" }}>
-        <ScrollReveal>
-          <div style={{
-            maxWidth: 900, margin: "0 auto",
-            background: "linear-gradient(145deg, #1a56db, #0e3fa8)",
-            borderRadius: 28, padding: "80px 48px", textAlign: "center", position: "relative", overflow: "hidden"
-          }}>
-            <div style={{ position: "absolute", top: -60, right: -60, width: 240, height: 240, borderRadius: "50%", background: "rgba(255,255,255,.06)", pointerEvents: "none" }} />
-            <div style={{ position: "absolute", bottom: -40, left: -40, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,.04)", pointerEvents: "none" }} />
-            <div style={{ position: "relative" }}>
-              <h2 className="display-font" style={{ fontSize: "clamp(32px, 5vw, 56px)", color: "#fff", lineHeight: 1.15, marginBottom: 22 }}>
-                Ready to Start<br /><em>Your Visa Journey?</em>
-              </h2>
-              <p className="body-font" style={{ fontSize: 19, color: "#93c5fd", marginBottom: 44, maxWidth: 460, marginLeft: "auto", marginRight: "auto", lineHeight: 1.8 }}>
-                Speak to a Blue Wave visa expert today — free of charge. Let us get you to where you want to go.
-              </p>
-              <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-                <button className="white-btn body-font"
-                  style={{ background: "#fff", color: "#1a56db", border: "none", padding: "20px 44px", borderRadius: 50, fontSize: 18, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 10 }}>
-                  <PhoneIcon /> Call Us Now
-                </button>
-                <button className="ghost-btn body-font"
-                  style={{ background: "transparent", color: "#fff", border: "2px solid rgba(255,255,255,.4)", padding: "19px 40px", borderRadius: 50, fontSize: 18, fontWeight: 600, cursor: "pointer" }}>
-                  Apply Online
-                </button>
-              </div>
-              <p className="body-font" style={{ color: "rgba(147,197,253,.6)", fontSize: 14, marginTop: 32 }}>
-                Blue Wave Management Consultancy · Trusted · Certified · Results-Driven
-              </p>
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
     </div>
   );
 }

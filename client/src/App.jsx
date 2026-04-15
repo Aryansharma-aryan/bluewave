@@ -13,6 +13,8 @@ import Pte from './components/services/pte';
 import VisitorVisa from './components/services/visitorVisa';
 import Footer from './components/Footer';
 import Dependent from './components/services/dependent';
+import WorkVisa from './components/services/WorkVisa';
+
 
 
 
@@ -52,6 +54,7 @@ function App() {
         <Route path="/ielts-pte" element={<Pte />} />
         <Route path="/visitor-visa" element={<VisitorVisa />} />
         <Route path="/dependent" element={<Dependent />} />
+        <Route path="/work" element={<WorkVisa />} />
       </Routes>
       <Footer />
     </Router>

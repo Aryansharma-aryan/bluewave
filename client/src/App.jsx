@@ -7,6 +7,16 @@ import About from './pages/AboutPage';
 import Contactsection from './pages/Contactsection';
 import Loader from './pages/Loader';
 import ConsultancyForm from './components/Forms/ConsultancyForm';
+import StudyVisa from './components/services/studyVisa';
+import TouristVisa from './components/services/touristVisa';
+import Pte from './components/services/pte';
+import VisitorVisa from './components/services/visitorVisa';
+import Footer from './components/Footer';
+
+
+
+
+
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +45,12 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contactsection />} />
         <Route path="/consult" element={<ConsultancyForm />} />
+        <Route path="/study-visa" element={<StudyVisa />} />
+        <Route path="/tourist" element={<TouristVisa />} />
+        <Route path="/ielts-pte" element={<Pte />} />
+        <Route path="/visitor-visa" element={<VisitorVisa />} />
       </Routes>
+      <Footer />
     </Router>
   );
 }

@@ -1,445 +1,475 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-/* ══════════════════════════════════════════════
-   BlueWave — Countries We Serve
-   Dual marquee rows · Premium cards
-   Flag + landscape photo + visa info
-══════════════════════════════════════════════ */
 
+/* ─────────────────────────────────────────
+   SVG FLAG ICONS  (clean, recognisable)
+───────────────────────────────────────── */
+const FlagIcon = ({ code, size = 48 }) => {
+  const flags = {
+    CA: (
+      <svg viewBox="0 0 60 40" width={size} height={size * 0.67}>
+        <rect width="60" height="40" fill="#fff"/>
+        <rect width="15" height="40" fill="#D32F2F"/>
+        <rect x="45" width="15" height="40" fill="#D32F2F"/>
+        <polygon points="30,6 27,16 17,16 25,22 22,32 30,26 38,32 35,22 43,16 33,16" fill="#D32F2F"/>
+      </svg>
+    ),
+    US: (
+      <svg viewBox="0 0 60 40" width={size} height={size * 0.67}>
+        <rect width="60" height="40" fill="#B22234"/>
+        {[0,1,2,3,4,5,6].map(i=><rect key={i} y={i*40/13*2+40/13} width="60" height={40/13} fill="#fff"/>)}
+        <rect width="24" height={40*7/13} fill="#3C3B6E"/>
+        {[0,1,2,3,4,5,6,7,8].map(i=>[0,1,2,3,4].map(j=>(
+          <circle key={`${i}-${j}`} cx={2.4+j*4.8+(i%2===0?0:2.4)} cy={2.2+i*3.1} r="1" fill="#fff"/>
+        )))}
+      </svg>
+    ),
+    GB: (
+      <svg viewBox="0 0 60 40" width={size} height={size * 0.67}>
+        <rect width="60" height="40" fill="#012169"/>
+        <line x1="0" y1="0" x2="60" y2="40" stroke="#fff" strokeWidth="8"/>
+        <line x1="60" y1="0" x2="0" y2="40" stroke="#fff" strokeWidth="8"/>
+        <line x1="0" y1="0" x2="60" y2="40" stroke="#C8102E" strokeWidth="4"/>
+        <line x1="60" y1="0" x2="0" y2="40" stroke="#C8102E" strokeWidth="4"/>
+        <rect x="24" width="12" height="40" fill="#fff"/>
+        <rect y="14" width="60" height="12" fill="#fff"/>
+        <rect x="26" width="8" height="40" fill="#C8102E"/>
+        <rect y="16" width="60" height="8" fill="#C8102E"/>
+      </svg>
+    ),
+    AU: (
+      <svg viewBox="0 0 60 40" width={size} height={size * 0.67}>
+        <rect width="60" height="40" fill="#00008B"/>
+        <rect x="0" width="30" height="20" fill="#00008B"/>
+        <line x1="0" y1="0" x2="30" y2="20" stroke="#fff" strokeWidth="5"/>
+        <line x1="30" y1="0" x2="0" y2="20" stroke="#fff" strokeWidth="5"/>
+        <line x1="0" y1="0" x2="30" y2="20" stroke="#C8102E" strokeWidth="3"/>
+        <line x1="30" y1="0" x2="0" y2="20" stroke="#C8102E" strokeWidth="3"/>
+        <rect x="12" width="6" height="20" fill="#fff"/>
+        <rect y="7" width="30" height="6" fill="#fff"/>
+        <rect x="13.5" width="3" height="20" fill="#C8102E"/>
+        <rect y="8.5" width="30" height="3" fill="#C8102E"/>
+        <circle cx="43" cy="30" r="4" fill="#fff"/>
+        <circle cx="52" cy="24" r="2.5" fill="#fff"/>
+        <circle cx="52" cy="33" r="2.5" fill="#fff"/>
+        <circle cx="46" cy="20" r="2.5" fill="#fff"/>
+      </svg>
+    ),
+    DE: (
+      <svg viewBox="0 0 60 40" width={size} height={size * 0.67}>
+        <rect width="60" height="40" fill="#FFCE00"/>
+        <rect width="60" height="13.3" fill="#000"/>
+        <rect y="13.3" width="60" height="13.3" fill="#D00"/>
+      </svg>
+    ),
+    SG: (
+      <svg viewBox="0 0 60 40" width={size} height={size * 0.67}>
+        <rect width="60" height="40" fill="#EF3340"/>
+        <rect y="20" width="60" height="20" fill="#fff"/>
+        <circle cx="16" cy="14" r="7" fill="#fff"/>
+        <circle cx="19" cy="14" r="5.5" fill="#EF3340"/>
+        {[0,1,2,3,4].map(i=>(
+          <polygon key={i}
+            transform={`translate(26,14) rotate(${i*72})`}
+            points="0,-4 1,-1.2 3.8,-1.2 1.5,0.8 2.4,3.6 0,2 -2.4,3.6 -1.5,0.8 -3.8,-1.2 -1,-1.2"
+            fill="#fff"/>
+        ))}
+      </svg>
+    ),
+    NZ: (
+      <svg viewBox="0 0 60 40" width={size} height={size * 0.67}>
+        <rect width="60" height="40" fill="#00247D"/>
+        <rect x="0" width="30" height="20" fill="#00247D"/>
+        <line x1="0" y1="0" x2="30" y2="20" stroke="#fff" strokeWidth="5"/>
+        <line x1="30" y1="0" x2="0" y2="20" stroke="#fff" strokeWidth="5"/>
+        <line x1="0" y1="0" x2="30" y2="20" stroke="#C8102E" strokeWidth="3"/>
+        <line x1="30" y1="0" x2="0" y2="20" stroke="#C8102E" strokeWidth="3"/>
+        <rect x="12" width="6" height="20" fill="#fff"/>
+        <rect y="7" width="30" height="6" fill="#fff"/>
+        <rect x="13.5" width="3" height="20" fill="#C8102E"/>
+        <rect y="8.5" width="30" height="3" fill="#C8102E"/>
+        <circle cx="42" cy="10" r="2.5" fill="#CC142B"/>
+        <circle cx="52" cy="16" r="2.5" fill="#CC142B"/>
+        <circle cx="46" cy="26" r="2.5" fill="#CC142B"/>
+        <circle cx="36" cy="22" r="2.5" fill="#CC142B"/>
+      </svg>
+    ),
+    MY: (
+      <svg viewBox="0 0 60 40" width={size} height={size * 0.67}>
+        <rect width="60" height="40" fill="#CC0001"/>
+        {[0,2,4,6,8,10,12].map(i=><rect key={i} y={i/14*40} width="60" height={40/14} fill="#fff"/>)}
+        <rect width="30" height="22" fill="#010066"/>
+        <circle cx="13" cy="11" r="7" fill="#FFCC00"/>
+        <circle cx="15" cy="11" r="5.5" fill="#010066"/>
+        {[0,1,2,3,4,5,6,7,8,9,10,11,12].map(i=>(
+          <polygon key={i}
+            transform={`translate(22,11) rotate(${i*27.7})`}
+            points="0,-4 0.8,-1.2 3.8,-1.2 1.5,0.8 2.4,3.6 0,2 -2.4,3.6 -1.5,0.8 -3.8,-1.2 -0.8,-1.2"
+            fill="#FFCC00"/>
+        ))}
+      </svg>
+    ),
+  };
+  return (
+    <div style={{
+      width: size, height: size * 0.67,
+      borderRadius: 6,
+      overflow: "hidden",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.14)",
+      flexShrink: 0,
+    }}>
+      {flags[code] || <div style={{ width: size, height: size * 0.67, background: "#eee" }} />}
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────
+   DATA
+───────────────────────────────────────── */
 const COUNTRIES = [
-  {
-    flag:"🇨🇦", name:"Canada", code:"CA",
-    tagline:"Start Fresh in the North",
-    desc:"Express Entry, PNP & Student Visas. One of the world's most welcoming immigration systems with clear PR pathways.",
-    visas:["Express Entry","Study Permit","Work Visa","PNP"],
-    color:"#DC2626", colorLight:"#FFF1F1",
-    img:"https://images.unsplash.com/photo-1517935706615-2717063c2225?w=600&q=80&auto=format&fit=crop",
-  },
-  {
-    flag:"🇺🇸", name:"USA", code:"US",
-    tagline:"Live the American Dream",
-    desc:"H-1B, F-1, B1/B2 and Green Card pathways. Expert guidance for every US visa category from our specialist team.",
-    visas:["H-1B Work","F-1 Student","B1/B2 Tourist","Green Card"],
-    color:"#2563EB", colorLight:"#EFF6FF",
-    img:"https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=600&q=80&auto=format&fit=crop",
-  },
-  {
-    flag:"🇬🇧", name:"United Kingdom", code:"GB",
-    tagline:"Your Gateway to Europe",
-    desc:"Skilled Worker, Student, and Visitor visas. Trusted guidance for all UK immigration routes post-Brexit.",
-    visas:["Skilled Worker","Student Visa","Visitor Visa","Global Talent"],
-    color:"#7C3AED", colorLight:"#F5F3FF",
-    img:"https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&q=80&auto=format&fit=crop",
-  },
-  {
-    flag:"🇦🇺", name:"Australia", code:"AU",
-    tagline:"Life Under the Southern Stars",
-    desc:"Skilled migration, student visas & TSS 482. Australia's points-based system simplified for you.",
-    visas:["Skilled Migration","Student Visa","TSS 482","Partner Visa"],
-    color:"#0369A1", colorLight:"#EFF8FF",
-    img:"https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=600&q=80&auto=format&fit=crop",
-  },
-  {
-    flag:"🇳🇿", name:"New Zealand", code:"NZ",
-    tagline:"Where Nature Meets Opportunity",
-    desc:"Skilled Migrant Category, Work to Residence and Student visas. A peaceful fresh start in the Pacific.",
-    visas:["Skilled Migrant","Work to Residence","Student Visa","Visitor Visa"],
-    color:"#059669", colorLight:"#ECFDF5",
-    img:"https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=600&q=80&auto=format&fit=crop",
-  },
-  {
-    flag:"🇩🇪", name:"Germany", code:"DE",
-    tagline:"Europe's Economic Powerhouse",
-    desc:"Job Seeker, Blue Card and Student visas for skilled professionals seeking a strong European base.",
-    visas:["EU Blue Card","Job Seeker Visa","Student Visa","Work Permit"],
-    color:"#374151", colorLight:"#F9FAFB",
-    img:"https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=600&q=80&auto=format&fit=crop",
-  },
-  {
-    flag:"🇪🇺", name:"Europe", code:"EU",
-    tagline:"Explore 27 Nations",
-    desc:"Schengen visas, student permits, and work authorizations across all major European nations.",
-    visas:["Schengen Visa","Student Permit","Work Authorization","Long-Stay Visa"],
-    color:"#D97706", colorLight:"#FFFBEB",
-    img:"https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=600&q=80&auto=format&fit=crop",
-  },
-  {
-    flag:"🇸🇬", name:"Singapore", code:"SG",
-    tagline:"Asia's Business Capital",
-    desc:"Employment Pass, S Pass, and Dependent passes for Asia's most dynamic and connected financial hub.",
-    visas:["Employment Pass","S Pass","Student Pass","Dependent Pass"],
-    color:"#9F1239", colorLight:"#FFF1F2",
-    img:"https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&q=80&auto=format&fit=crop",
-  },
-  {
-    flag:"🇲🇾", name:"Malaysia", code:"MY",
-    tagline:"Affordable & Welcoming",
-    desc:"MM2H, Employment Pass and Student visas. Malaysia offers warm climate, low costs and strong connectivity.",
-    visas:["MM2H","Employment Pass","Student Visa","Professional Visit"],
-    color:"#DC2626", colorLight:"#FFF1F1",
-    img:"https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=600&q=80&auto=format&fit=crop",
-  },
+  { name: "Canada",         code: "CA", accent: "#D32F2F", visas: ["Express Entry", "Study Permit", "Work Visa", "PNP"],                  img: "https://images.unsplash.com/photo-1517935706615-2717063c2225?w=800&q=80&fit=crop" },
+  { name: "United States",  code: "US", accent: "#1565C0", visas: ["H-1B Work", "F-1 Student", "B1/B2 Tourist", "Green Card"],            img: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80&fit=crop" },
+  { name: "United Kingdom", code: "GB", accent: "#283593", visas: ["Skilled Worker", "Student Visa", "Visitor Visa", "Global Talent"],     img: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80&fit=crop" },
+  { name: "Australia",      code: "AU", accent: "#0277BD", visas: ["Skilled Migration", "Student Visa", "TSS 482", "Partner Visa"],        img: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800&q=80&fit=crop" },
+  { name: "Germany",        code: "DE", accent: "#37474F", visas: ["EU Blue Card", "Job Seeker Visa", "Student Visa", "Work Permit"],      img: "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=800&q=80&fit=crop" },
+  { name: "Singapore",      code: "SG", accent: "#B71C1C", visas: ["Employment Pass", "S Pass", "Student Pass", "Dependent Pass"],        img: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80&fit=crop" },
+  { name: "New Zealand",    code: "NZ", accent: "#2E7D32", visas: ["Skilled Migrant", "Work to Residence", "Student Visa", "Visitor Visa"],img: "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&q=80&fit=crop" },
+  { name: "Malaysia",       code: "MY", accent: "#C62828", visas: ["MM2H", "Employment Pass", "Student Visa", "Professional Visit"],      img: "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&q=80&fit=crop" },
 ];
 
-const ROW1 = COUNTRIES.slice(0, 5);
-const ROW2 = COUNTRIES.slice(4);
+// triple for seamless loop
+const TRACK = [...COUNTRIES, ...COUNTRIES, ...COUNTRIES];
 
-let cssInjected = false;
-function injectCSS(css) {
-  if (cssInjected) return; cssInjected = true;
-  const el = document.createElement("style");
-  el.textContent = css;
-  document.head.appendChild(el);
-}
+/* ─────────────────────────────────────────
+   CARD
+───────────────────────────────────────── */
+function Card({ c }) {
+  const [hov, setHov] = useState(false);
 
-/* ── Country Card ── */
-function CountryCard({ c }) {
   return (
-    <div className="cc-card" style={{ "--ac": c.color, "--al": c.colorLight }}>
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        width: 320,
+        flexShrink: 0,
+        borderRadius: 20,
+        overflow: "hidden",
+        background: "#fff",
+        border: `1.5px solid ${hov ? c.accent + "50" : "#EBEBEB"}`,
+        boxShadow: hov
+          ? `0 24px 56px rgba(0,0,0,0.13), 0 4px 16px ${c.accent}22`
+          : "0 2px 16px rgba(0,0,0,0.06)",
+        transform: hov ? "translateY(-10px) scale(1.02)" : "translateY(0) scale(1)",
+        transition: "transform 0.42s cubic-bezier(.16,1,.3,1), box-shadow 0.35s ease, border-color 0.3s ease",
+        cursor: "pointer",
+        position: "relative",
+      }}
+    >
+      {/* accent bar that slides in on hover */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0,
+        height: 3, background: c.accent,
+        transform: hov ? "scaleX(1)" : "scaleX(0)",
+        transformOrigin: "left",
+        transition: "transform 0.38s cubic-bezier(.16,1,.3,1)",
+        zIndex: 3,
+      }} />
 
-      {/* Animated top bar */}
-      <div className="cc-top-bar" />
+      {/* ── IMAGE ── */}
+      <div style={{ position: "relative", height: 190, overflow: "hidden" }}>
+        <img
+          src={c.img} alt={c.name}
+          style={{
+            width: "100%", height: "100%", objectFit: "cover",
+            transform: hov ? "scale(1.09)" : "scale(1)",
+            transition: "transform 0.65s cubic-bezier(.16,1,.3,1)",
+          }}
+        />
+        {/* gradient overlay */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: hov
+            ? `linear-gradient(to bottom, transparent 30%, ${c.accent}cc)`
+            : "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.5))",
+          transition: "background 0.4s ease",
+        }} />
 
-      {/* Image */}
-      <div className="cc-img-wrap">
-        <img src={c.img} alt={c.name} className="cc-img" />
-        <div className="cc-img-grad" />
-        {/* Flag bubble */}
-        <div className="cc-flag-bubble">
-          <span className="cc-flag">{c.flag}</span>
+        {/* country name on image bottom */}
+        <div style={{
+          position: "absolute", bottom: 14, left: 16, right: 16,
+          display: "flex", alignItems: "flex-end", justifyContent: "space-between",
+        }}>
+          <p style={{
+            margin: 0,
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 24, fontWeight: 700,
+            color: "#fff", lineHeight: 1,
+            letterSpacing: "-0.01em",
+            textShadow: "0 2px 8px rgba(0,0,0,0.3)",
+            transform: hov ? "translateY(-3px)" : "translateY(0)",
+            transition: "transform 0.35s ease",
+          }}>
+            {c.name}
+          </p>
+          {/* arrow circle */}
+          <div style={{
+            width: 32, height: 32, borderRadius: "50%",
+            background: hov ? "#fff" : "rgba(255,255,255,0.2)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transform: hov ? "scale(1.1)" : "scale(1)",
+            transition: "all 0.3s ease",
+          }}>
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none"
+              stroke={hov ? c.accent : "#fff"} strokeWidth={2.5}
+              strokeLinecap="round" strokeLinejoin="round"
+              style={{ transition: "stroke 0.3s, transform 0.3s ease", transform: hov ? "translateX(1px)" : "none" }}>
+              <path d="M5 12h14M13 6l6 6-6 6"/>
+            </svg>
+          </div>
         </div>
-        {/* Country code */}
-        <div className="cc-code-badge">{c.code}</div>
       </div>
 
-      {/* Body */}
-      <div className="cc-body">
-        <h3 className="cc-name">{c.name}</h3>
-        <p className="cc-tagline">{c.tagline}</p>
-        <p className="cc-desc">{c.desc}</p>
+      {/* ── BODY ── */}
+      <div style={{ padding: "18px 20px 20px" }}>
 
-        {/* Visa pills */}
-        <div className="cc-tags">
+        {/* flag + code row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+          <FlagIcon code={c.code} size={52} />
+          <div>
+            <p style={{
+              margin: 0,
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.14em",
+              textTransform: "uppercase", color: c.accent,
+              fontFamily: "'DM Sans', sans-serif",
+            }}>
+              {c.code}
+            </p>
+            <p style={{
+              margin: "2px 0 0", fontSize: 12, color: "#94A3B8",
+              fontFamily: "'DM Sans', sans-serif",
+            }}>
+              {c.visas.length} visa types available
+            </p>
+          </div>
+        </div>
+
+        {/* visa pills */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {c.visas.map((v, i) => (
-            <span key={i} className="cc-tag"
-              style={{ color: c.color, background: c.colorLight, borderColor: `${c.color}28` }}>
+            <span key={i} style={{
+              fontSize: 11, fontWeight: 600,
+              color: hov ? c.accent : "#475569",
+              background: hov ? c.accent + "12" : "#F8FAFC",
+              border: `1px solid ${hov ? c.accent + "30" : "#E2E8F0"}`,
+              borderRadius: 100, padding: "4px 11px",
+              fontFamily: "'DM Sans', sans-serif",
+              letterSpacing: "0.03em",
+              transition: "all 0.3s ease",
+              transitionDelay: `${i * 0.04}s`,
+            }}>
               {v}
             </span>
           ))}
-        </div>
-
-        {/* CTA row */}
-        <div className="cc-foot">
-          <span className="cc-cta-txt">Apply Now</span>
-          <svg className="cc-arrow" width="14" height="14" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M13 6l6 6-6 6"/>
-          </svg>
         </div>
       </div>
     </div>
   );
 }
 
-/* ── Main ── */
-export default function CountriesSection() {
-  const ref = useRef(false);
-  useEffect(() => { if (ref.current) return; ref.current = true; injectCSS(CSS); }, []);
+/* ─────────────────────────────────────────
+   MARQUEE
+───────────────────────────────────────── */
+function Marquee({ items }) {
+  const [paused, setPaused] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      style={{ position: "relative", overflow: "hidden", padding: "12px 0 16px" }}
+    >
+      {/* edge fades */}
+      {["left:0", "right:0"].map((side, i) => (
+        <div key={i} style={{
+          position: "absolute", top: 0, bottom: 0, width: 140,
+          [i === 0 ? "left" : "right"]: 0,
+          background: `linear-gradient(${i === 0 ? "90deg" : "-90deg"}, #fff 30%, transparent)`,
+          zIndex: 2, pointerEvents: "none",
+        }} />
+      ))}
 
-  const triple = (arr) => [...arr, ...arr, ...arr];
+      <div style={{
+        display: "flex", gap: 22, width: "max-content",
+        animation: "mqScroll 50s linear infinite",
+        animationPlayState: paused ? "paused" : "running",
+      }}>
+        {items.map((c, i) => <Card key={i} c={c} />)}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   REVEAL HOOK
+───────────────────────────────────────── */
+function useReveal() {
+  const ref = useRef(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const ob = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setOn(true); ob.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    if (ref.current) ob.observe(ref.current);
+    return () => ob.disconnect();
+  }, []);
+  return [ref, on];
+}
+
+/* ─────────────────────────────────────────
+   SECTION
+───────────────────────────────────────── */
+export default function CountriesSection() {
+    const navigate = useNavigate();
+
+  const [headRef, headOn] = useReveal();
+  const [footRef, footOn] = useReveal();
+
+  useEffect(() => {
+    if (document.getElementById("cs-kf")) return;
+    const s = document.createElement("style");
+    s.id = "cs-kf";
+    s.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,300;1,600&display=swap');
+      @keyframes mqScroll { from { transform: translateX(0) } to { transform: translateX(-33.333%) } }
+    `;
+    document.head.appendChild(s);
+  }, []);
 
   return (
-    <section id="countries" className="ct-root">
+    <section style={{
+      background: "#ffffff",
+      padding: "96px 0 80px",
+      fontFamily: "'DM Sans', sans-serif",
+      overflow: "hidden",
+    }}>
 
-      {/* Background */}
-      <div className="ct-bg-dots" />
-      <div className="ct-bg-orb ct-orb-1" />
-      <div className="ct-bg-orb ct-orb-2" />
-
-      {/* Header */}
-      <div className="ct-header">
-        <div className="ct-eyebrow">
-          <span className="ct-eyebrow-line" />
-          Countries We Serve
-          <span className="ct-eyebrow-line" />
+      {/* ── HEADER ── */}
+      <div ref={headRef} style={{
+        textAlign: "center",
+        maxWidth: 600, margin: "0 auto 56px",
+        padding: "0 24px",
+        opacity: headOn ? 1 : 0,
+        transform: headOn ? "none" : "translateY(24px)",
+        transition: "opacity 0.75s ease, transform 0.75s cubic-bezier(.16,1,.3,1)",
+      }}>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 14,
+          marginBottom: 22,
+        }}>
+          <span style={{ width: 36, height: 1, background: "#CBD5E1", display: "block" }} />
+          <span style={{
+            fontSize: 11, fontWeight: 700, letterSpacing: "0.2em",
+            textTransform: "uppercase", color: "#94A3B8",
+          }}>
+            Countries We Serve
+          </span>
+          <span style={{ width: 36, height: 1, background: "#CBD5E1", display: "block" }} />
         </div>
-        <h2 className="ct-h2">
-          Your Dream Destination —<br />
-          <span className="ct-h2-red">We'll Get You There.</span>
+
+        <h2 style={{
+          fontFamily: "'Cormorant Garamond', serif",
+          fontSize: "clamp(2.4rem, 5vw, 3.6rem)",
+          fontWeight: 700, lineHeight: 1.1,
+          color: "#0F172A", margin: "0 0 18px",
+          letterSpacing: "-0.02em",
+        }}>
+          Your destination is{" "}
+          <em style={{ fontStyle: "italic", fontWeight: 300, color: "#2563EB" }}>
+            already chosen.
+          </em>
         </h2>
-        <p className="ct-sub">
-          Expert visa guidance for 9+ countries across 4 continents.
-          Study, work, settle or explore — click any card to begin.
+
+        <p style={{
+          fontSize: 16, color: "#64748B",
+          lineHeight: 1.75, margin: 0, fontWeight: 400,
+        }}>
+          Expert visa guidance across 50+ countries. Hover any card to explore —
+          click to begin your application.
         </p>
       </div>
 
-      {/* Marquee Row 1 — scrolls left */}
-      <div className="ct-mq-wrap">
-        <div className="ct-fade ct-fade-l" />
-        <div className="ct-fade ct-fade-r" />
-        <div className="ct-mq-track ct-mq-fwd">
-          {triple(ROW1).map((c, i) => (
-            <div key={i} className="ct-mq-item" onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior:"smooth" })}>
-              <CountryCard c={c} />
+      {/* ── SINGLE MARQUEE ROW ── */}
+      <Marquee items={TRACK} />
+
+      {/* ── FOOTER ── */}
+      <div ref={footRef} style={{
+        maxWidth: 640, margin: "56px auto 0",
+        padding: "0 24px", textAlign: "center",
+        opacity: footOn ? 1 : 0,
+        transform: footOn ? "none" : "translateY(18px)",
+        transition: "opacity 0.7s 0.1s ease, transform 0.7s 0.1s ease",
+      }}>
+        {/* flag strip */}
+        <div style={{
+          display: "flex", justifyContent: "center",
+          flexWrap: "wrap", gap: 14, marginBottom: 28,
+        }}>
+          {COUNTRIES.map((c) => (
+            <div
+              key={c.code}
+              title={c.name}
+              style={{ cursor: "default", transition: "transform 0.22s ease" }}
+              onMouseEnter={e => e.currentTarget.style.transform = "scale(1.3) translateY(-4px)"}
+              onMouseLeave={e => e.currentTarget.style.transform = "none"}
+            >
+              <FlagIcon code={c.code} size={38} />
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Marquee Row 2 — scrolls right */}
-      <div className="ct-mq-wrap">
-        <div className="ct-fade ct-fade-l" />
-        <div className="ct-fade ct-fade-r" />
-        <div className="ct-mq-track ct-mq-rev">
-          {triple(ROW2).map((c, i) => (
-            <div key={i} className="ct-mq-item" onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior:"smooth" })}>
-              <CountryCard c={c} />
-            </div>
-          ))}
-        </div>
-      </div>
+        <div style={{ width: 40, height: 1, background: "#E2E8F0", margin: "0 auto 20px" }} />
 
-      {/* Bottom strip */}
-      <div className="ct-bottom">
-        <div className="ct-bottom-inner">
-          <div className="ct-bottom-flags">
-            {COUNTRIES.map((c, i) => (
-              <span key={i} className="ct-bottom-flag" title={c.name}>{c.flag}</span>
-            ))}
-          </div>
-          <p className="ct-bottom-txt">
-            Don't see your destination?
-            We cover <strong>50+ countries</strong> worldwide.
-          </p>
-          <button className="ct-bottom-btn"
-            onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior:"smooth" })}>
-            Ask About Your Country →
-          </button>
-        </div>
+        <p style={{
+          fontSize: 14, color: "#94A3B8",
+          margin: "0 0 28px", lineHeight: 1.7,
+        }}>
+          Don't see your destination?{" "}
+          <strong style={{ color: "#475569", fontWeight: 600 }}>
+            We cover 50+ countries
+          </strong>{" "}
+          worldwide.
+        </p>
+
+        <button
+      onClick={() => navigate("/contact")}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = "#1D4ED8";
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 8px 28px rgba(37,99,235,0.36)";
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = "#2563EB";
+        e.currentTarget.style.transform = "none";
+        e.currentTarget.style.boxShadow = "0 4px 18px rgba(37,99,235,0.24)";
+      }}
+      style={{
+        background: "#2563EB", color: "#fff",
+        border: "none", borderRadius: 100,
+        padding: "14px 40px",
+        fontSize: 13, fontWeight: 700,
+        letterSpacing: "0.08em", textTransform: "uppercase",
+        fontFamily: "'DM Sans', sans-serif",
+        cursor: "pointer",
+        boxShadow: "0 4px 18px rgba(37,99,235,0.24)",
+        transition: "background 0.25s, transform 0.25s, box-shadow 0.25s",
+      }}
+    >
+      Ask About Your Country →
+    </button>
       </div>
 
     </section>
   );
 }
-
-/* ════════════════════════════════════════════
-   STYLES
-════════════════════════════════════════════ */
-const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500&display=swap');
-
-/* ── Root ── */
-.ct-root {
-  position:relative;
-  background:#F8F5F0;
-  font-family:'Poppins',sans-serif;
-  overflow:hidden;
-}
-
-/* ── Background ── */
-.ct-bg-dots {
-  position:absolute; inset:0; pointer-events:none; z-index:0;
-  background-image:radial-gradient(circle,rgba(30,43,60,0.06) 1px,transparent 1px);
-  background-size:26px 26px;
-}
-.ct-bg-orb {
-  position:absolute; border-radius:50%;
-  pointer-events:none; z-index:0; filter:blur(100px);
-}
-.ct-orb-1 {
-  width:500px; height:500px; top:-100px; right:-80px;
-  background:radial-gradient(circle,rgba(220,38,38,0.08) 0%,transparent 65%);
-  animation:ctOrb 22s ease-in-out infinite;
-}
-.ct-orb-2 {
-  width:420px; height:420px; bottom:0; left:-80px;
-  background:radial-gradient(circle,rgba(212,175,55,0.08) 0%,transparent 65%);
-  animation:ctOrb 28s ease-in-out infinite reverse;
-}
-@keyframes ctOrb { 0%,100%{transform:scale(1) translate(0,0)} 50%{transform:scale(1.1) translate(-12px,-18px)} }
-
-/* ── Header ── */
-.ct-header {
-  position:relative; z-index:2;
-  text-align:center; padding:88px 24px 52px;
-  animation:ctFadeUp .8s cubic-bezier(.16,1,.3,1) both;
-}
-@keyframes ctFadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
-
-.ct-eyebrow {
-  display:inline-flex; align-items:center; gap:14px;
-  font-family:'Montserrat',sans-serif; font-size:.6rem; font-weight:700;
-  letter-spacing:.3em; text-transform:uppercase; color:#6B7280;
-  margin-bottom:20px;
-}
-.ct-eyebrow-line { display:inline-block; width:26px; height:1.5px; background:#9CA3AF; }
-
-.ct-h2 {
-  font-family:'Playfair Display',serif;
-  font-size:clamp(2.4rem,5vw,4rem); font-weight:700; line-height:1.12;
-  color:#1E2B3C; letter-spacing:-0.02em; margin:0 0 16px;
-}
-.ct-h2-red { font-style:italic; color:#DC2626; }
-
-.ct-sub {
-  font-size:1rem; font-weight:300; color:#6B7280;
-  max-width:480px; margin:0 auto; line-height:1.85;
-}
-
-/* ── Marquee wrapper ── */
-.ct-mq-wrap {
-  position:relative; overflow:hidden;
-  margin-bottom:20px; padding:4px 0;
-}
-.ct-fade {
-  position:absolute; top:0; bottom:0; width:120px; z-index:3; pointer-events:none;
-}
-.ct-fade-l { left:0; background:linear-gradient(90deg,#F8F5F0,transparent); }
-.ct-fade-r { right:0; background:linear-gradient(-90deg,#F8F5F0,transparent); }
-
-.ct-mq-track {
-  display:flex; gap:18px; width:max-content;
-}
-.ct-mq-fwd { animation:ctMqFwd 38s linear infinite; }
-.ct-mq-rev { animation:ctMqRev 42s linear infinite; }
-.ct-mq-track:hover { animation-play-state:paused; }
-@keyframes ctMqFwd { from{transform:translateX(0)} to{transform:translateX(-33.333%)} }
-@keyframes ctMqRev { from{transform:translateX(-33.333%)} to{transform:translateX(0)} }
-
-.ct-mq-item { flex-shrink:0; cursor:pointer; }
-
-/* ── Card ── */
-.cc-card {
-  width:300px; background:#fff;
-  border:1.5px solid rgba(30,43,60,0.08);
-  border-radius:18px; overflow:hidden;
-  transition:transform .32s cubic-bezier(.34,1.56,.64,1),box-shadow .3s ease,border-color .25s;
-  position:relative;
-}
-.cc-card:hover {
-  transform:translateY(-8px) scale(1.02);
-  box-shadow:0 24px 60px rgba(30,43,60,.16),0 4px 16px rgba(30,43,60,.06);
-  border-color:var(--ac);
-}
-
-/* Top animated bar */
-.cc-top-bar {
-  position:absolute; top:0; left:0; right:0; height:3px; z-index:2;
-  background:var(--ac);
-  transform:scaleX(0); transform-origin:left;
-  transition:transform .35s cubic-bezier(.16,1,.3,1);
-}
-.cc-card:hover .cc-top-bar { transform:scaleX(1); }
-
-/* Image */
-.cc-img-wrap { position:relative; height:175px; overflow:hidden; }
-.cc-img { width:100%; height:100%; object-fit:cover; transition:transform .5s ease; }
-.cc-card:hover .cc-img { transform:scale(1.06); }
-.cc-img-grad { position:absolute; inset:0; background:linear-gradient(to bottom,rgba(0,0,0,.05),rgba(0,0,0,.4)); }
-
-/* Flag bubble */
-.cc-flag-bubble {
-  position:absolute; top:14px; left:14px;
-  width:44px; height:44px; border-radius:50%;
-  background:#fff; display:flex; align-items:center; justify-content:center;
-  box-shadow:0 4px 16px rgba(0,0,0,.25);
-  transition:transform .3s;
-}
-.cc-card:hover .cc-flag-bubble { transform:scale(1.1) rotate(-6deg); }
-.cc-flag { font-size:1.55rem; line-height:1; }
-
-/* Country code badge */
-.cc-code-badge {
-  position:absolute; top:14px; right:14px;
-  font-family:'Montserrat',sans-serif; font-size:.62rem; font-weight:800;
-  letter-spacing:.1em; color:var(--ac);
-  background:rgba(255,255,255,.92); border:1px solid var(--ac);
-  border-radius:6px; padding:4px 9px;
-}
-
-/* Body */
-.cc-body { padding:17px 18px 15px; }
-
-.cc-name {
-  font-family:'Montserrat',sans-serif; font-size:1.05rem; font-weight:800;
-  color:#1E2B3C; margin:0 0 3px; letter-spacing:-.01em; transition:color .22s;
-}
-.cc-card:hover .cc-name { color:var(--ac); }
-
-.cc-tagline {
-  font-size:.71rem; font-weight:500; color:var(--ac);
-  margin:0 0 10px; letter-spacing:.02em;
-}
-
-.cc-desc {
-  font-size:.79rem; font-weight:300; color:#6B7280;
-  line-height:1.65; margin:0 0 13px;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
-}
-
-/* Visa pills */
-.cc-tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px; }
-.cc-tag {
-  font-family:'Montserrat',sans-serif; font-size:.58rem; font-weight:600;
-  letter-spacing:.06em; text-transform:uppercase;
-  border:1px solid; border-radius:100px; padding:3px 10px;
-}
-
-/* Footer CTA */
-.cc-foot {
-  display:flex; align-items:center; justify-content:space-between;
-  border-top:1px solid rgba(30,43,60,.07); padding-top:12px;
-}
-.cc-cta-txt {
-  font-family:'Montserrat',sans-serif; font-size:.68rem; font-weight:700;
-  letter-spacing:.08em; text-transform:uppercase; color:var(--ac);
-  transition:letter-spacing .22s;
-}
-.cc-card:hover .cc-cta-txt { letter-spacing:.14em; }
-.cc-arrow { color:var(--ac); transition:transform .22s; }
-.cc-card:hover .cc-arrow { transform:translateX(5px); }
-
-/* ── Bottom strip ── */
-.ct-bottom {
-  position:relative; z-index:2;
-  background:#1E2B3C; padding:48px 28px; margin-top:24px;
-}
-.ct-bottom-inner {
-  max-width:900px; margin:0 auto;
-  display:flex; flex-direction:column; align-items:center; gap:18px; text-align:center;
-}
-.ct-bottom-flags { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-.ct-bottom-flag {
-  font-size:1.8rem; cursor:default; display:inline-block;
-  transition:transform .2s;
-}
-.ct-bottom-flag:hover { transform:scale(1.22) translateY(-3px); }
-
-.ct-bottom-txt {
-  font-size:.95rem; font-weight:300; color:rgba(255,255,255,.58); margin:0;
-}
-.ct-bottom-txt strong { font-weight:700; color:#F5D76E; }
-
-.ct-bottom-btn {
-  font-family:'Montserrat',sans-serif; font-size:.74rem; font-weight:700;
-  letter-spacing:.1em; text-transform:uppercase; color:#1E2B3C;
-  background:linear-gradient(135deg,#F5D76E,#D4AF37,#B8921E);
-  border:none; padding:14px 36px; cursor:pointer;
-  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));
-  position:relative; overflow:hidden;
-  transition:transform .28s ease,box-shadow .3s ease;
-}
-.ct-bottom-btn::before {
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.28) 50%,transparent 70%);
-  transform:translateX(-100%); transition:transform .5s ease;
-}
-.ct-bottom-btn:hover::before { transform:translateX(100%); }
-.ct-bottom-btn:hover { transform:translateY(-3px); box-shadow:0 16px 40px rgba(212,175,55,.45); }
-
-@media(max-width:600px) {
-  .ct-header { padding:64px 18px 40px; }
-  .cc-card { width:265px; }
-  .cc-img-wrap { height:145px; }
-}
-`;

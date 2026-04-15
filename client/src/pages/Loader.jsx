@@ -10,9 +10,10 @@ export default function Loader({ onDone }) {
     document.body.style.background = "#06091A";
     document.body.style.overflow = "hidden";
 
+    // Smooth animation phases within 2 seconds
     const t1 = setTimeout(() => setPhase("hold"), 200);
-    const t2 = setTimeout(() => setPhase("exit"), 1500);
-    const t3 = setTimeout(() => onDone?.(), 2100);
+    const t2 = setTimeout(() => setPhase("exit"), 1400); // exit earlier
+    const t3 = setTimeout(() => onDone?.(), 2000); // exactly 2 sec
 
     return () => {
       document.body.style.background = prevBg;

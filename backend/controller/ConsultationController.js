@@ -117,7 +117,7 @@ const createConsultation = async (req, res) => {
 
     try {
       const emailResponse = await resend.emails.send({
-        from: "CAIALS <onboarding@caials.in>",  // must be verified
+        from: "Resend <onboarding@resend.dev>",  // must be verified
         to: [process.env.ADMIN_RECIPIENT],       // can be multiple emails
         subject: `📩 New Consultation from ${newConsultation.fullName}`,
         html: buildConsultationHtml(newConsultation),

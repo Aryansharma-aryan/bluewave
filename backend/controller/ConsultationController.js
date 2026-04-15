@@ -1,27 +1,18 @@
-// controllers/consultController.js
-
 const { body, validationResult } = require("express-validator");
 const Consultation = require("../models/Consultation");
 const { Resend } = require("resend");
 require("dotenv").config();
 
-// ------------------------------------------------------
-// 🚀 Initialize Resend API
-// ------------------------------------------------------
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-  //  📧 EMAIL TEMPLATE (HTML)
 const buildConsultationHtml = (consult) => `
-  <div style="font-family: 'Arial', sans-serif; background-color:#f9f9f9; padding:30px;">
+  <div style="font-family: Arial, sans-serif; background-color:#f9f9f9; padding:30px;">
     <div style="max-width:600px; margin:auto; background-color:#ffffff; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); overflow:hidden;">
-      
-      <!-- Personalized Greeting Header -->
       <div style="background-color:#4a90e2; color:#ffffff; padding:20px; text-align:center;">
-        <h2 style="margin:0; font-size:20px;">Hello ,</h2>
+        <h2 style="margin:0; font-size:20px;">Hello,</h2>
         <p style="margin:5px 0 0; font-size:16px;">Here is your new consultation request</p>
       </div>
-      
-      <!-- Consultation Details Table -->
+
       <table cellpadding="10" cellspacing="0" style="width:100%; border-collapse:collapse; font-size:14px; color:#333;">
         <tr style="background-color:#f0f4f8;"><td style="font-weight:bold; width:40%;">Name:</td><td>${consult.fullName}</td></tr>
         <tr><td style="font-weight:bold; background-color:#f0f4f8;">Email:</td><td>${consult.email}</td></tr>
@@ -34,16 +25,10 @@ const buildConsultationHtml = (consult) => `
         <tr style="background-color:#f0f4f8;"><td style="font-weight:bold;">Message:</td><td>${consult.message || "Not provided"}</td></tr>
         <tr><td style="font-weight:bold;">Submitted At:</td><td>${new Date(consult.createdAt).toLocaleString()}</td></tr>
       </table>
-      
-     
-      
     </div>
   </div>
 `;
 
-/* -------------------------------------------------------
-   🧾 VALIDATION RULES
----------------------------------------------------------- */
 const validateConsultation = [
   body("fullName")
     .trim()
@@ -61,7 +46,7 @@ const validateConsultation = [
     .isNumeric()
     .withMessage("Phone must contain only numbers.")
     .isLength({ min: 7, max: 15 })
-    .withMessage("Phone number must be 7–15 digits."),
+    .withMessage("Phone number must be 7-15 digits."),
   body("countryOfInterest").trim().notEmpty().withMessage("Country is required."),
   body("visaType").trim().notEmpty().withMessage("Visa type is required."),
   body("contactMethod")
@@ -69,20 +54,19 @@ const validateConsultation = [
     .notEmpty()
     .isIn(["Email", "Phone", "WhatsApp"])
     .withMessage("Invalid contact method."),
- body("preferredDate")
-  .optional({ checkFalsy: true })
-  .isISO8601()
-  .withMessage("Preferred date must be valid (YYYY-MM-DD).")
-  .custom((value) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time
-    const selectedDate = new Date(value);
-    if (selectedDate < today) {
-      throw new Error("Preferred date cannot be in the past.");
-    }
-    return true;
-  }),
-
+  body("preferredDate")
+    .optional({ checkFalsy: true })
+    .isISO8601()
+    .withMessage("Preferred date must be valid (YYYY-MM-DD).")
+    .custom((value) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDate = new Date(value);
+      if (selectedDate < today) {
+        throw new Error("Preferred date cannot be in the past.");
+      }
+      return true;
+    }),
   body("purpose")
     .optional({ checkFalsy: true })
     .trim()
@@ -94,6 +78,7 @@ const validateConsultation = [
     .isLength({ max: 500 })
     .withMessage("Message too long (max 500 chars)."),
 ];
+
 const createConsultation = async (req, res) => {
   console.log("Incoming consultation request:", req.body);
 
@@ -111,42 +96,36 @@ const createConsultation = async (req, res) => {
   try {
     const newConsultation = await Consultation.create(req.body);
     console.log("Consultation saved:", newConsultation._id);
-try {
-  const emailResponse = await resend.emails.send({
-    from: "Resend <onboarding@bluewaveconsultation.com>",
-    to: ["info@bluewaveconsultation.com"],   // ✅ manually added admin email
-    subject: `📩 New Consultation from ${newConsultation.fullName}`,
-    
-    html: buildConsultationHtml(newConsultation),
 
-    text: `New consultation from ${newConsultation.fullName}
+    try {
+      const emailResponse = await resend.emails.send({
+        from: "Resend <onboarding@bluewaveconsultation.com>",
+        to: [process.env.ADMIN_RECIPIENT],
+        subject: `New Consultation from ${newConsultation.fullName}`,
+        html: buildConsultationHtml(newConsultation),
+        text: `New consultation from ${newConsultation.fullName}
 Email: ${newConsultation.email}
 Phone: ${newConsultation.phone}
 Country: ${newConsultation.countryOfInterest}
 Visa Type: ${newConsultation.visaType}`,
+        replyTo: [newConsultation.email || process.env.ADMIN_RECIPIENT],
+      });
 
-    reply_to: newConsultation.email || "info@bluewaveconsultation.com",
-  });
-
-  console.log("Consultation email sent:", emailResponse?.data?.id || "ok");
-
-} catch (error) {
-  console.error("Email failed ❌:", error);
-}
+      console.log("Consultation email sent:", emailResponse?.data?.id || "ok");
+    } catch (error) {
+      console.error("Email failed:", error);
+    }
 
     res.status(201).json({
       success: true,
       message: "Your consultation has been submitted successfully.",
     });
-
   } catch (err) {
     console.error("Consultation create error:", err);
     res.status(500).json({ success: false, message: "Something went wrong." });
   }
 };
-/* -------------------------------------------------------
-   📚 OTHER CONTROLLERS
----------------------------------------------------------- */
+
 const getAllConsultations = async (req, res) => {
   try {
     const consultations = await Consultation.find().sort({ createdAt: -1 }).lean();
@@ -164,8 +143,9 @@ const markConsultationCompleted = async (req, res) => {
       { isCompleted: req.body.isCompleted },
       { new: true }
     );
-    if (!consultation)
+    if (!consultation) {
       return res.status(404).json({ message: "Consultation not found" });
+    }
     res.status(200).json(consultation);
   } catch (err) {
     console.error(err);
@@ -199,8 +179,9 @@ const cleanupOldConsultations = async (req, res) => {
 const deleteConsultationById = async (req, res) => {
   try {
     const deleted = await Consultation.findByIdAndDelete(req.params.id);
-    if (!deleted)
+    if (!deleted) {
       return res.status(404).json({ message: "Consultation not found" });
+    }
     res.json({ message: "Consultation deleted successfully." });
   } catch (err) {
     console.error(err);
@@ -223,7 +204,7 @@ const clearAllConsultations = async (req, res) => {
 
 const getConsultationsPaginated = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
+    const page = parseInt(req.query.page, 10) || 1;
     const limit = 20;
     const skip = (page - 1) * limit;
 
@@ -244,9 +225,6 @@ const getConsultationsPaginated = async (req, res) => {
   }
 };
 
-/* -------------------------------------------------------
-   📦 EXPORT MODULES
----------------------------------------------------------- */
 module.exports = {
   validateConsultation,
   createConsultation,

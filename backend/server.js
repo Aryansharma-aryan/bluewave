@@ -12,19 +12,29 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ CORS (FINAL WORKING VERSION)
-app.use(cors({
-  origin: [
-    "https://www.bluewaveconsultation.com",
-    "https://bluewaveconsultation.com",
-    "http://localhost:5173"
-  ],
+const allowedOrigins = new Set([
+  "https://www.bluewaveconsultation.com",
+  "https://bluewaveconsultation.com",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+]);
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error(`Origin not allowed by CORS: ${origin}`));
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true
-}));
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
 
 // ✅ IMPORTANT (fix preflight requests for Express 5)
-app.options(/.*/, cors());
+app.options(/.*/, cors(corsOptions));
 
 // ✅ Middleware
 app.use(express.json());

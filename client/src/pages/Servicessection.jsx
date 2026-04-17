@@ -76,37 +76,37 @@ function SmoothCursor({ visible, hover }) {
 const SERVICES = [
   {
     title: "Study Visa",
-    desc: "Apply study visas today with Western Overseas to open multiple possibilities. Studying abroad in the UK, USA, Australia, and Canada enhances knowledge and career prospects.",
+    desc: "Apply study visas today with Bluewave Consultation to open multiple possibilities. Studying abroad in the UK, USA, Australia, and Canada enhances knowledge and career prospects.",
     img: studyImg, path: "/study-visa",
     icon: (<svg viewBox="0 0 48 48" fill="none" width="26" height="26"><path d="M24 6L42 15v2L24 26 6 17v-2L24 6z" stroke="#fff" strokeWidth="2.4" strokeLinejoin="round"/><path d="M10 19v12c0 5 6.268 8 14 8s14-3 14-8V19" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"/><path d="M42 15v13" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"/></svg>),
   },
   {
     title: "Visitor Visa",
-    desc: "Visit Canada, Australia, the USA, New Zealand, the UK, and Europe as a tourist to meet friends and family. Explore more options with Western Overseas.",
+    desc: "Visit Canada, Australia, the USA, New Zealand, the UK, and Europe as a tourist to meet friends and family. Explore more options with Bluewave Consultation.",
     img: visitorImg, path: "/visitor-visa",
     icon: (<svg viewBox="0 0 48 48" fill="none" width="26" height="26"><rect x="6" y="10" width="36" height="28" rx="3" stroke="#fff" strokeWidth="2.4"/><path d="M6 18h36" stroke="#fff" strokeWidth="2.4"/><circle cx="16" cy="30" r="3" stroke="#fff" strokeWidth="2.2"/><path d="M22 30h10M22 34h7" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/></svg>),
   },
   {
     title: "Dependent Visa",
-    desc: "Western Overseas supports getting child and spouse visas to reunite all family members. A genuine relationship must be established to apply.",
+    desc: "Bluewave Consultation supports getting child and spouse visas to reunite all family members. A genuine relationship must be established to apply.",
     img: dependentImg, path: "/dependent",
     icon: (<svg viewBox="0 0 48 48" fill="none" width="26" height="26"><circle cx="17" cy="14" r="6" stroke="#fff" strokeWidth="2.4"/><circle cx="31" cy="14" r="6" stroke="#fff" strokeWidth="2.4"/><path d="M5 42c0-7.732 5.373-14 12-14h14c6.627 0 12 6.268 12 14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"/></svg>),
   },
   {
     title: "Work Visa",
-    desc: "Secure international job opportunities with expert work visa processing. We assist skilled professionals applying for permits across the UK, Canada, Australia, and Germany.",
+    desc: "Secure international job opportunities with expert work visa processing. Bluewave Consultation assists skilled professionals applying for permits across the UK, Canada, Australia, and Germany.",
     img: workImg, path: "/work",
     icon: (<svg viewBox="0 0 48 48" fill="none" width="26" height="26"><rect x="6" y="16" width="36" height="26" rx="3" stroke="#fff" strokeWidth="2.4"/><path d="M16 16V12a3 3 0 013-3h10a3 3 0 013 3v4" stroke="#fff" strokeWidth="2.4"/><path d="M6 28h36" stroke="#fff" strokeWidth="2.4"/></svg>),
   },
   {
     title: "Tourist Visa",
-    desc: "Explore the world with fast and hassle-free tourist visa approvals. We support all major destinations including Europe, USA, UAE, Thailand, and Southeast Asia.",
+    desc: "Explore the world with fast and hassle-free tourist visa approvals. Bluewave Consultation supports all major destinations including Europe, USA, UAE, Thailand, and Southeast Asia.",
     img: touristImg, path: "/tourist",
     icon: (<svg viewBox="0 0 48 48" fill="none" width="26" height="26"><path d="M10 40l5-14 19-17-17 19-7 12z" stroke="#fff" strokeWidth="2.4" strokeLinejoin="round"/><path d="M33 10l5 5-12 9 2-14z" stroke="#fff" strokeWidth="2.4" strokeLinejoin="round"/></svg>),
   },
   {
     title: "IELTS / PTE Coaching",
-    desc: "Achieve your target band score with expert IELTS and PTE coaching. Structured lessons, full-length mock tests, and personalised feedback from experienced trainers.",
+    desc: "Achieve your target band score with expert IELTS and PTE coaching. Bluewave Consultation provides structured lessons, full-length mock tests, and personalised feedback from experienced trainers.",
     img: pteImg, path: "/ielts-pte",
     icon: (<svg viewBox="0 0 48 48" fill="none" width="26" height="26"><rect x="6" y="8" width="36" height="32" rx="3" stroke="#fff" strokeWidth="2.4"/><path d="M14 20h20M14 28h14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"/></svg>),
   },

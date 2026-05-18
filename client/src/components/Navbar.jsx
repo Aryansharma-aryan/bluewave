@@ -34,7 +34,7 @@ export default function Navbar() {
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
   useEffect(() => {
-    const fn = () => { if (window.innerWidth >= 900) setOpen(false); };
+    const fn = () => { if (window.innerWidth >= 1040) setOpen(false); };
     window.addEventListener("resize", fn);
     return () => window.removeEventListener("resize", fn);
   }, []);
@@ -68,11 +68,11 @@ export default function Navbar() {
     <>
       <style>{CSS}</style>
 
-      <header className={`nb-header${scrolled ? " nb-scrolled" : ""}`}>
+      <header className={`nb-header${scrolled ? " nb-scrolled" : ""}${isLoggedIn ? " nb-logged-in" : ""}`}>
         <div className="nb-inner">
 
           {/* LOGO */}
-         <button className="nb-brand" onClick={() => goTo("/")}>
+         <button className="nb-brand" type="button" onClick={() => goTo("/")}>
   <img src={Logo} alt="BlueWave" className="nb-logo" />
   
   <div className="nb-brand-text">
@@ -88,6 +88,7 @@ export default function Navbar() {
             {NAV_LINKS.map(l => (
               <button
                 key={l.path}
+                type="button"
                 className={`nb-link${isActive(l.path) ? " nb-active" : ""}`}
                 onClick={() => goTo(l.path)}
               >
@@ -108,21 +109,21 @@ export default function Navbar() {
               </div>
             </a>
 
-            <button className="nb-cta" onClick={() => goTo("/contact")}>
+            <button className="nb-cta" type="button" onClick={() => goTo("/contact")}>
               Free Consultation
             </button>
 
             {isLoggedIn ? (
-              <>
-                <button className="nb-auth-btn" onClick={() => goTo("/admin")}>
+              <div className="nb-auth-group">
+                <button className="nb-auth-btn" type="button" onClick={() => goTo("/admin")}>
                   Admin Panel
                 </button>
-                <button className="nb-auth-btn nb-logout" onClick={handleLogout}>
+                <button className="nb-auth-btn nb-logout" type="button" onClick={handleLogout}>
                   Logout
                 </button>
-              </>
+              </div>
             ) : (
-              <button className="nb-auth-btn" onClick={() => goTo("/login")}>
+              <button className="nb-auth-btn" type="button" onClick={() => goTo("/login")}>
                 Login
               </button>
             )}
@@ -130,6 +131,7 @@ export default function Navbar() {
             {/* HAMBURGER */}
             <button
               className={`nb-ham${open ? " nb-ham-open" : ""}`}
+              type="button"
               onClick={() => setOpen(o => !o)}
               aria-label="Toggle menu"
             >
@@ -155,7 +157,7 @@ export default function Navbar() {
               <div className="nb-brand-tagline">Management Consultancy</div>
             </div>
           </div>
-          <button className="nb-close" onClick={() => setOpen(false)} aria-label="Close">
+          <button className="nb-close" type="button" onClick={() => setOpen(false)} aria-label="Close">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
@@ -169,6 +171,7 @@ export default function Navbar() {
           {NAV_LINKS.map(l => (
             <button
               key={l.path}
+              type="button"
               className={`nb-drawer-link${isActive(l.path) ? " nb-drawer-active" : ""}`}
               onClick={() => goTo(l.path)}
             >
@@ -182,6 +185,7 @@ export default function Navbar() {
           {isLoggedIn ? (
             <>
               <button
+                type="button"
                 className={`nb-drawer-link${isActive("/admin") ? " nb-drawer-active" : ""}`}
                 onClick={() => goTo("/admin")}
               >
@@ -190,7 +194,7 @@ export default function Navbar() {
                   <path d="M9 18l6-6-6-6"/>
                 </svg>
               </button>
-              <button className="nb-drawer-link nb-drawer-logout" onClick={handleLogout}>
+              <button className="nb-drawer-link nb-drawer-logout" type="button" onClick={handleLogout}>
                 Logout
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 18l6-6-6-6"/>
@@ -199,6 +203,7 @@ export default function Navbar() {
             </>
           ) : (
             <button
+              type="button"
               className={`nb-drawer-link${isActive("/login") ? " nb-drawer-active" : ""}`}
               onClick={() => goTo("/login")}
             >
@@ -218,7 +223,7 @@ export default function Navbar() {
             </svg>
             +971 50 658 0557
           </a>
-          <button className="nb-drawer-cta" onClick={() => goTo("/consult")}>
+          <button className="nb-drawer-cta" type="button" onClick={() => goTo("/consult")}>
             Book Free Consultation
           </button>
         </div>
@@ -244,11 +249,9 @@ const CSS = `
   }
 
   .nb-inner {
-    height: 90px;   /* increase header height */
-
-    max-width: 1280px; margin: 0 auto;
-    padding: 0 32px; height: 72px;
-    display: flex; align-items: center; gap: 32px;
+    max-width: 1360px; margin: 0 auto;
+    padding: 0 clamp(16px, 3vw, 32px); height: 76px;
+    display: flex; align-items: center; gap: clamp(16px, 2.4vw, 30px);
     justify-content: space-between;
   }
 
@@ -258,6 +261,12 @@ const CSS = `
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 0 0 auto;
+  min-width: max-content;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
@@ -315,24 +324,29 @@ const CSS = `
 .nb-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex: 1;
   justify-content: center;
+  min-width: 0;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1040px) {
   .nb-nav { display: none !important; }
 }
 
 /* NAV LINKS */
 .nb-link {
-  font-size: 17px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
   font-weight: 600;
   color: #1f2937;
-  padding: 10px 16px;
+  padding: 10px clamp(9px, 1vw, 15px);
   position: relative;
   transition: all 0.3s ease;
-  letter-spacing: 0.3px;
+  white-space: nowrap;
+  letter-spacing: 0;
 }
 
 /* UNDERLINE (MATCH LOGO COLORS) */
@@ -382,7 +396,7 @@ const CSS = `
 
   /* ── RIGHT ── */
   .nb-right {
-    display: flex; align-items: center; gap: 16px; flex-shrink: 0;
+    display: flex; align-items: center; gap: clamp(8px, 1.2vw, 14px); flex-shrink: 0;
   }
 
   .nb-phone {
@@ -403,14 +417,16 @@ const CSS = `
     font-size: 0.82rem; font-weight: 600;
     color: #222;
   }
-  @media (max-width: 1100px) { .nb-phone { display: none !important; } }
+  .nb-logged-in .nb-phone { display: none; }
+
+  @media (max-width: 1220px) { .nb-phone { display: none !important; } }
 
   .nb-cta {
     font-family: 'Inter', sans-serif;
     font-size: 0.82rem; font-weight: 600;
     color: #fff; background: #e53935;
     border: none; border-radius: 6px;
-    padding: 10px 20px; cursor: pointer; white-space: nowrap;
+    padding: 10px 18px; cursor: pointer; white-space: nowrap;
     transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
   }
   .nb-cta:hover {
@@ -418,14 +434,27 @@ const CSS = `
     transform: translateY(-1px);
     box-shadow: 0 4px 16px rgba(229,57,53,0.35);
   }
-  @media (max-width: 900px) { .nb-cta { display: none !important; } }
+  .nb-logged-in .nb-cta {
+    padding-inline: 16px;
+  }
+
+  @media (max-width: 1160px) { .nb-logged-in .nb-cta { display: none !important; } }
+  @media (max-width: 1040px) { .nb-cta { display: none !important; } }
+
+  .nb-auth-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
 
   .nb-auth-btn {
     font-family: 'Inter', sans-serif;
     font-size: 0.82rem; font-weight: 600;
     color: #1f2937; background: transparent;
     border: 1px solid #e0e0e0; border-radius: 6px;
-    padding: 10px 16px; cursor: pointer; white-space: nowrap;
+    min-height: 40px;
+    padding: 10px 14px; cursor: pointer; white-space: nowrap;
     transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
   }
   .nb-auth-btn:hover {
@@ -445,7 +474,10 @@ const CSS = `
     border-color: #c62828;
     box-shadow: 0 4px 16px rgba(229,57,53,0.35);
   }
-  @media (max-width: 900px) { .nb-auth-btn { display: none !important; } }
+  @media (max-width: 1040px) {
+    .nb-auth-btn,
+    .nb-auth-group { display: none !important; }
+  }
 
   /* ── HAMBURGER ── */
   .nb-ham {
@@ -456,7 +488,7 @@ const CSS = `
     transition: border-color 0.2s, background 0.2s;
   }
   .nb-ham:hover { border-color: #e53935; background: #fff5f5; }
-  @media (max-width: 900px) { .nb-ham { display: flex !important; } }
+  @media (max-width: 1040px) { .nb-ham { display: flex !important; } }
   .nb-ham span {
     display: block; width: 100%; height: 2px;
     background: #333; border-radius: 2px;
@@ -565,4 +597,26 @@ const CSS = `
   .nb-drawer-cta:hover { background: #c62828; }
 
   body { overflow-x: hidden; }
+
+  @media (max-width: 1180px) {
+    .nb-inner { gap: 14px; }
+    .nb-logo { width: 58px; height: 58px; }
+    .nb-brand-name { font-size: 23px; }
+    .nb-link { font-size: 15px; padding-inline: 9px; }
+    .nb-auth-btn { padding-inline: 12px; }
+  }
+
+  @media (max-width: 540px) {
+    .nb-inner { height: 68px; }
+    .nb-logo { width: 52px; height: 52px; }
+    .nb-brand-name { font-size: 21px; }
+    .nb-brand { gap: 9px; }
+    .nb-ham { width: 40px; height: 40px; }
+  }
+
+  @media (max-width: 360px) {
+    .nb-brand-name { font-size: 18px; }
+    .nb-logo { width: 46px; height: 46px; }
+    .nb-inner { padding-inline: 12px; }
+  }
 `;
